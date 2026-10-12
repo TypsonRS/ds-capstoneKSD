@@ -1,0 +1,166 @@
+import osmnx as ox
+from shapely.geometry import box
+from shapely.ops import unary_union
+
+ox.settings.timeout = 300
+ox.settings.use_cache = True      # re-runs reuse downloaded tiles
+
+def osm_features(polygon, tags, tile_deg=0.5):
+    """Download OSM features tile by tile so large AOIs don't time out."""
+    minx, miny, maxx, maxy = polygon.bounds
+    parts = []
+    for x in np.arange(minx, maxx, tile_deg):
+        for y in np.arange(miny, maxy, tile_deg):
+            tile = box(x, y, min(x + tile_deg, maxx), min(y + tile_deg, maxy))
+            try:
+                try:
+                    g = ox.features_from_polygon(tile, tags)       # osmnx >= 1.5
+                except AttributeError:
+                    g = ox.geometries_from_polygon(tile, tags)     # older osmnx
+                parts.append(g[["geometry"]])
+            except Exception as e:                                 # empty tiles raise an error too
+                print(f"  tile ({x:.1f}, {y:.1f}) skipped: {str(e)[:60]}")
+    if not parts:
+        return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+    out = pd.concat(parts)
+    out = out[~out.index.duplicated()]
+    return gpd.GeoDataFrame(out, geometry="geometry", crs="EPSG:4326")
+
+
+print("Downloading OSM data for distance calculations...")
+try:
+    aoi_poly = aoi_gdf.geometry.union_all()      # use .unary_union on older GeoPandas
+
+    roads_gdf = osm_features(
+        aoi_poly,
+        {"highway": ["motorway", "trunk", "primary", "secondary", "tertiary",
+                     "unclassified", "residential", "track"]},
+    )
+    roads_gdf = roads_gdf[roads_gdf.geom_type.isin(["LineString", "MultiLineString"])]
+
+    settlements_gdf = osm_features(aoi_poly, {"place": ["village", "town", "city", "hamlet"]})
+
+    utm = gdf.estimate_utm_crs()                 # metric CRS: distances in metres, not degrees
+    gdf_utm = gdf.to_crs(utm)
+
+    if not roads_gdf.empty:
+        gdf["dist_to_road_m"] = gdf_utm.geometry.distance(
+            unary_union(roads_gdf.to_crs(utm).geometry)).values
+    else:
+        gdf["dist_to_road_m"] = np.nan
+
+    if not settlements_gdf.empty:
+        gdf["dist_to_settlement_m"] = gdf_utm.geometry.distance(
+            unary_union(settlements_gdf.to_crs(utm).geometry)).values
+    else:
+        gdf["dist_to_settlement_m"] = np.nan
+
+    print(f"OSM done. Road segments: {len(roads_gdf)}, settlements: {len(settlements_gdf)}")
+except Exception as e:
+    print(f"OSM download failed or timed out. Filling with NaN. Error: {e}")
+    gdf["dist_to_road_m"] = np.nan
+    gdf["dist_to_settlement_m"] = np.nan
+
+
+
+
+
+
+
+
+
+
+
+NEWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+
+
+
+
+    from datetime import datetime, timezone
+
+def last_full_year(col_id):
+    """Last calendar year that the collection fully covers."""
+    ms = ee.ImageCollection(col_id).aggregate_max("system:time_start").getInfo()
+    d = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+    return d.year if (d.month, d.day) >= (12, 1) else d.year - 1
+
+def get_features_image(aoi):
+    """Computes and stacks all engineered features (sampled later at TARGET_SCALE)."""
+
+    # ---- safe year windows (end is exclusive: next year's Jan 1) ----
+    clim_end = min(CLIMATE_YEARS[1], last_full_year("UCSB-CHG/CHIRPS/DAILY"),
+                   last_full_year("IDAHO_EPSCOR/TERRACLIMATE"))
+    ndvi_end = min(NDVI_YEARS[1], last_full_year("MODIS/061/MOD13Q1"))
+    fire_end = min(FIRE_LONG_YEARS[1], last_full_year("MODIS/061/MCD64A1"))
+    print(f"Using climate to {clim_end}, NDVI to {ndvi_end}, fire to {fire_end}")
+
+    # 1. Climate
+    precipitation = (ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY")
+        .filterDate(f"{CLIMATE_YEARS[0]}-01-01", f"{clim_end + 1}-01-01")
+        .select("precipitation").mean()
+        .rename("precipitation_mean"))
+
+    tc = (ee.ImageCollection("IDAHO_EPSCOR/TERRACLIMATE")
+        .filterDate(f"{CLIMATE_YEARS[0]}-01-01", f"{clim_end + 1}-01-01")
+        .select(["tmmn", "tmmx"]))
+    tmin = tc.select("tmmn").mean().multiply(0.1).rename("tmin")   # TerraClimate scale 0.1 -> deg C
+    tmax = tc.select("tmmx").mean().multiply(0.1).rename("tmax")
+    tmean = tmin.add(tmax).divide(2).rename("tmean")
+
+    soil_moisture = (ee.ImageCollection("IDAHO_EPSCOR/TERRACLIMATE")
+        .select("soil")
+        .filterDate("1991-01-01", f"{clim_end + 1}-01-01")
+        .filter(ee.Filter.calendarRange(7, 10, "month"))
+        .mean().multiply(0.1).rename("soil_moisture"))             # mm
+
+    # 2. Soil: iSDAsoil
+    soil_soc = (ee.Image("ISDASOIL/Africa/v1/carbon_organic").select("mean_0_20")
+                .divide(10).exp().subtract(1).rename("soc"))       # log-scaled; verify on catalog page
+    soil_ph = ee.Image("ISDASOIL/Africa/v1/ph").select("mean_0_20").divide(10).rename("ph")
+
+    # 3. Topography
+    dem = ee.Image("USGS/SRTMGL1_003")
+    slope = ee.Terrain.slope(dem).rename("slope")
+    # aspect = ee.Terrain.aspect(dem).rename("aspect")
+    elevation = dem.select("elevation").rename("elevation")
+
+    # 4. Land cover
+    wc = ee.ImageCollection("ESA/WorldCover/v200").first().select("Map")
+    built_up = wc.eq(50).rename("built_up")
+    water = wc.eq(80).rename("water")
+
+    # 5. Protected zone
+    region = ee.Geometry.BBox(*aoi.total_bounds)
+    wdpa = (ee.FeatureCollection("WCMC/WDPA/current/polygons")
+            .filterBounds(region)
+            .filter(ee.Filter.inList("STATUS", ["Designated", "Inscribed", "Established", "Adopted"])))
+    protected = ee.Image.constant(0).paint(wdpa, 1).rename("protected")   # 1 inside a protected area, else 0
+        
+
+    # 6. Fire: fraction of years burned (one 0/1 flag per year, skip years with no data)
+    burn = ee.ImageCollection("MODIS/061/MCD64A1").select("BurnDate")
+    flags = []
+    for y in range(FIRE_LONG_YEARS[0], fire_end + 1):
+        yr = burn.filterDate(f"{y}-01-01", f"{y + 1}-01-01")
+        if yr.size().getInfo() > 0:
+            flags.append(yr.max().gt(0).unmask(0).rename("burned"))
+    print(f"Fire years used: {len(flags)}")
+    fire_freq = ee.ImageCollection.fromImages(flags).mean().rename("fire_freq")
+
+    # 7. Vegetation
+    ndvi_col = (ee.ImageCollection("MODIS/061/MOD13Q1")
+        .filterDate(f"{NDVI_YEARS[0]}-01-01", f"{ndvi_end + 1}-01-01")
+        .select("NDVI").map(lambda img: img.multiply(0.0001)))
+    ndvi_mean = ndvi_col.mean().rename("ndvi_mean")
+    ndvi_std = ndvi_col.reduce(ee.Reducer.stdDev()).rename("ndvi_std")
+    ndvi_resilience = ndvi_mean.divide(ndvi_std.add(0.01)).rename("ndvi_resilience")
+
+    
+    # Stack all layers
+    # FIX: Replaced undefined 'Temperature' with 'tmean', and fixed variable casing
+    return ee.Image.cat([
+        precipitation, tmean, tmin, tmax, soil_soc, soil_ph, soil_moisture, protected,
+        elevation, slope, built_up, water, fire_freq, ndvi_mean, ndvi_std, ndvi_resilience
+    ])
+
+print("✅ Feature engineering function defined successfully.")
