@@ -1,0 +1,26 @@
+{
+  "type": "FeatureCollection",
+  "columns": {},
+  "properties": {
+    "band_order": [
+      "precipitation_mean",
+      "tmean",
+      "tmin",
+      "tmax",
+      "soc",
+      "ph",
+      "soil_moisture",
+      "protected",
+      "ndvi_trend",
+      "elevation",
+      "slope",
+      "built_up",
+      "water",
+      "fire_freq",
+      "ndvi_mean",
+      "ndvi_std",
+      "ndvi_resilience"
+    ]
+  },
+  "features": []
+}

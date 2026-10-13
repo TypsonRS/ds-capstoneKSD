@@ -4,12 +4,12 @@ tmean,28.974,yearly mean 2006-2025
 tmin,22.309,yearly mean 2006-2025
 tmax,35.64,yearly mean 2006-2025
 soil_moisture,17.033,yearly mean 2006-2025
-burned_area,928.726,yearly mean 2006-2025
+burned_area,288.955,yearly mean 2006-2025
 ndvi,0.267,yearly mean 2006-2025
 ndvi_std,0.1,yearly mean 2006-2025
 ndvi_resilience,2.512,yearly mean 2006-2025
-soc,3.848,static (sampled points)
-ph,6.4,static (sampled points)
-elevation,311.625,static (sampled points)
-slope,0.583,static (sampled points)
+soc,7.224,static (sampled points)
+ph,5.927,static (sampled points)
+elevation,27.289,static (sampled points)
+slope,0.647,static (sampled points)
 dist_to_road_m,,static (sampled points)
