@@ -8,7 +8,7 @@ burned_area,341.749,yearly mean 2006-2025
 ndvi,0.267,yearly mean 2006-2025
 ndvi_std,0.1,yearly mean 2006-2025
 ndvi_resilience,2.512,yearly mean 2006-2025
-soc,7.913,static (sampled points)
+soc,7.926,static (sampled points)
 ph,5.86,static (sampled points)
-elevation,356.774,static (sampled points)
-slope,1.793,static (sampled points)
+elevation,357.344,static (sampled points)
+slope,1.797,static (sampled points)
