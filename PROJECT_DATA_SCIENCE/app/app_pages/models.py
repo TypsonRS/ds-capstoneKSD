@@ -48,7 +48,12 @@ with st.container(border=True):
         tooltip=["Condition", alt.Tooltip(f"{model}:Q", format=".3f")])
     st.altair_chart(chart, alt=f"Permutation importance of each condition for {model}")
     if model == "CNN (2D patches)":
-        st.caption("The CNN only sees 7 image layers (5×5 patches), so the NDVI and land-cover inputs are blank.")
+        missing = PERM_IMPORTANCE.index[PERM_IMPORTANCE[model].isna()]
+        note = "The CNN learns from small 5×5-pixel maps (1.25 km × 1.25 km) of each layer around a site."
+        if len(missing):
+            note += (" These layers were not given to it, so they have no score: "
+                     + ", ".join(FEATURE_INFO[c][0] for c in missing) + ".")
+        st.caption(note)
 
 st.subheader("Figures from the notebook", anchor=False)
 figures = {

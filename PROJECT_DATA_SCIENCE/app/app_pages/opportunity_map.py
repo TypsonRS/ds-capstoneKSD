@@ -4,10 +4,10 @@ import pydeck as pdk
 import streamlit as st
 
 from common import (AOI_KM2, BEST_MODEL, FEATURE_INFO, MODEL_COLS, TIER_COLORS, TIER_NAMES, hex_to_rgb,
-                    load_countries, load_points, rdylgn)
+                    hexbin_mean, load_countries, load_points, rdylgn, surface_png)
 
 st.title("Opportunity map", anchor=False)
-st.caption("Each dot is a sampled 250 m site. Click a dot to see its conditions.")
+st.caption("Each sampled 250 m site colours the area around it. Click the map to see the conditions of the nearest site.")
 
 df = load_points()
 
@@ -18,7 +18,12 @@ with st.sidebar:
                                 default="Probability", required=True)
     low_t, high_t = st.slider("Tier thresholds (low ≤ / high ≥)", 0.0, 1.0, (0.40, 0.60), 0.05)
     hide_protected = st.toggle("Hide protected areas", help="Protected areas are for conservation, not restoration")
-    radius = st.slider("Dot size (m)", 50, 400, 120, 10)
+    if view == "Hexagons":
+        hex_km = st.slider("Hexagon size (km, centre to corner)", 1.0, 8.0, 2.5, 0.5)
+    else:
+        show_points = st.toggle("Show sample points",
+                                help="The map is filled from the nearest sample point, as in the notebook's "
+                                     "interactive map. Turn this on to see the points themselves.")
 
 score_col = MODEL_COLS[model]
 m = df.loc[df[score_col].notna()].copy()
@@ -61,16 +66,27 @@ plot = plot.round({"score": 2, "precipitation_mean": 2, "soil_moisture": 0, "ele
 
 layers = []
 if view == "Hexagons":
+    # averages are computed here (deck.gl's own HexagonLayer ignores the score and only counts points)
+    hexes = hexbin_mean(m["lon"], m["lat"], m["score"], size_km=hex_km)
+    hexes[["r", "g", "b"]] = rdylgn(hexes["mean"])
+    hexes["mean"] = hexes["mean"].round(2)
     layers.append(pdk.Layer(
-        "HexagonLayer", plot, id="hexagons", get_position=["lon", "lat"], radius=2500,
-        get_color_weight="score", color_aggregation="MEAN", get_elevation_weight="score",
-        elevation_aggregation="MEAN", color_domain=[0, 1], extruded=False, opacity=0.75, pickable=True,
-        color_range=[hex_to_rgb(c) for c in ["#d73027", "#fc8d59", "#fee08b", "#d9ef8b", "#91cf60", "#1a9850"]]))
-    tooltip = {"text": "Mean P(high) in hexagon: {colorValue}\nSites: {count}"}
+        "PolygonLayer", hexes, id="hexagons", get_polygon="polygon", get_fill_color=["r", "g", "b", 200],
+        get_line_color=[255, 255, 255, 120], line_width_min_pixels=0.5, stroked=True, pickable=True,
+        auto_highlight=True))
+    tooltip = {"html": f"<b>{model}</b><br/>Mean P(high potential): <b>{{mean}}</b><br/>Sites in hexagon: {{count}}"}
+    legend = f"{model}: average probability of high potential per hexagon: :red[● 0] → :orange[● 0.5] → :green[● 1]"
 else:
+    # wall-to-wall surface (nearest sample point, like the notebook's folium map) + the points on top for clicks
+    spacing = float(np.sqrt(AOI_KM2 / len(df)))                       # km between neighbouring sites
+    image, bounds = surface_png(plot["lon"].to_numpy(), plot["lat"].to_numpy(), plot[["r", "g", "b"]].to_numpy(),
+                                spacing, reach=1.5)
+    layers.append(pdk.Layer("BitmapLayer", None, id="surface", image=pdk.types.String(image), bounds=bounds))
     layers.append(pdk.Layer(
-        "ScatterplotLayer", plot, id="sites", get_position=["lon", "lat"], get_fill_color=["r", "g", "b", 220],
-        get_radius=radius, radius_min_pixels=1, pickable=True, auto_highlight=True))
+        "ScatterplotLayer", plot, id="sites", get_position=["lon", "lat"],
+        get_fill_color=["r", "g", "b", 255 if show_points else 1],      # alpha 1: invisible but still clickable
+        get_line_color=[30, 30, 30, 160 if show_points else 0], stroked=True, line_width_min_pixels=0.3,
+        get_radius=spacing * 450, radius_min_pixels=1, pickable=True, auto_highlight=True))
     tooltip = {"html": "<b>P(high potential): {score}</b><br/>{tier_name} · {votes} of 4 models say high"
                        "<br/>Rain {precipitation_mean} mm/day · Soil moisture {soil_moisture} mm"
                        "<br/>Elevation {elevation} m · Slope {slope}°<br/>NDVI trend {ndvi_trend}/yr"}
