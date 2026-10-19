@@ -61,12 +61,12 @@ TIER_COLORS = ["#d73027", "#fee08b", "#1a9850"]
 
 # Results printed by the notebook (section 7b, tuned with spatial CV) -------------------------
 TUNED_RESULTS = pd.DataFrame(
-    {"CV F1 macro":   [0.738, 0.733, 0.666, 0.710],
-     "Test accuracy": [0.760, 0.761, 0.708, 0.736],
-     "Test F1 macro": [0.760, 0.761, 0.707, 0.736],
-     "Test ROC-AUC":  [0.842, 0.845, 0.774, 0.790],
-     "Test PR-AUC":   [0.818, 0.822, 0.727, 0.742],
-     "Training time (s)": [1682, 456, 82, 1977]},
+    {"CV F1 macro":   [0.738, 0.733, 0.666, 0.729],
+     "Test accuracy": [0.760, 0.761, 0.708, 0.767],
+     "Test F1 macro": [0.760, 0.761, 0.707, 0.767],
+     "Test ROC-AUC":  [0.842, 0.845, 0.774, 0.836],
+     "Test PR-AUC":   [0.818, 0.822, 0.727, 0.776],
+     "Training time (s)": [1576, 554, 105, 1842]},
     index=pd.Index(["Random Forest", "XGBoost", "Logistic Regression", "CNN (2D patches)"], name="Model"))
 
 # Permutation importance printed by the notebook (section 9, drop in F1 macro on held-out blocks)
@@ -74,7 +74,7 @@ PERM_IMPORTANCE = pd.DataFrame(
     {"Random Forest":       [0.065, 0.034, 0.027, 0.026, 0.019, 0.011, 0.010, 0.009, 0.008, 0.006, 0.006, 0.003, 0.001, 0.001, 0.000],
      "Logistic Regression": [0.033, 0.041, 0.064, 0.248, 0.135, 0.100, 0.019, 0.132, 0.002, 0.110, 0.179, 0.000, 0.005, 0.004, 0.000],
      "XGBoost":             [0.072, 0.047, 0.016, 0.023, 0.025, 0.026, 0.013, 0.012, 0.011, 0.011, 0.020, 0.004, 0.004, 0.002, 0.000],
-     "CNN (2D patches)":    [0.164, 0.153, np.nan, np.nan, np.nan, 0.106, np.nan, np.nan, 0.069, 0.179, np.nan, 0.021, 0.045, np.nan, np.nan]},
+     "CNN (2D patches)":    [0.069, 0.112, 0.039, 0.040, 0.034, 0.110, 0.050, 0.052, 0.032, 0.055, 0.043, 0.035, 0.017, 0.017, 0.000]},
     index=pd.Index(["soil_moisture", "elevation", "ndvi_std", "ndvi_resilience", "tmin", "soc", "protected",
                     "ndvi_mean", "precipitation_mean", "tmean", "tmax", "slope", "ph", "built_up", "water"],
                    name="Feature"))
@@ -101,6 +101,76 @@ def rdylgn(p):
     i = np.minimum(x.astype(int), len(stops) - 2)
     f = (x - i)[:, None]
     return (stops[i] * (1 - f) + stops[i + 1] * f).astype(np.uint8)
+
+
+@st.cache_data(max_entries=30, show_spinner=False)
+def surface_png(lon, lat, rgb, spacing_km, boundary=None, reach=2.5, max_px=1200):
+    """Wall-to-wall image like the notebook's folium overlay: every pixel takes the colour of its nearest
+    sample point (up to `reach` point spacings away), clipped to the region boundary when one is given.
+    Returns (PNG data URL, [west, south, east, north]) for a pydeck BitmapLayer."""
+    import base64
+    import io
+
+    import shapely
+    from PIL import Image
+    from scipy.spatial import cKDTree
+
+    lon, lat, rgb = np.asarray(lon, float), np.asarray(lat, float), np.asarray(rgb, np.uint8)
+    kx = np.cos(np.deg2rad(lat.mean()))
+    geom = shapely.geometry.shape(boundary["features"][0]["geometry"]) if boundary else None
+    pad = spacing_km / 110.57
+    west, south, east, north = geom.bounds if geom is not None else (
+        lon.min() - pad / kx, lat.min() - pad, lon.max() + pad / kx, lat.max() + pad)
+
+    # pixels of about a third of the point spacing, capped at max_px on the long side
+    w_km, h_km = (east - west) * kx * 111.32, (north - south) * 110.57
+    px_km = max(spacing_km / 3, max(w_km, h_km) / max_px)
+    W, H = max(int(np.ceil(w_km / px_km)), 1), max(int(np.ceil(h_km / px_km)), 1)
+    X, Y = np.meshgrid(west + (np.arange(W) + 0.5) * (east - west) / W,
+                       north - (np.arange(H) + 0.5) * (north - south) / H)
+
+    dist, idx = cKDTree(np.column_stack([lon * kx, lat])).query(
+        np.column_stack([X.ravel() * kx, Y.ravel()]), distance_upper_bound=reach * spacing_km / 110.57)
+    keep = np.isfinite(dist)
+    if geom is not None:
+        keep &= shapely.contains_xy(geom, X.ravel(), Y.ravel())
+
+    img = np.zeros((H * W, 4), dtype=np.uint8)
+    img[keep, :3] = rgb[idx[keep]]
+    img[keep, 3] = 225
+    buf = io.BytesIO()
+    Image.fromarray(img.reshape(H, W, 4), "RGBA").save(buf, format="PNG", optimize=True)
+    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode(), [west, south, east, north]
+
+
+def hexbin_mean(lon, lat, values, size_km=2.5, min_points=3):
+    """Average of `values` per pointy-top hexagon (size = centre-to-corner in km), like plt.hexbin in the notebook.
+    Returns one row per hexagon: polygon (list of [lon, lat]), mean, count."""
+    lat0 = float(np.mean(lat))
+    kx, ky = 111.32 * np.cos(np.deg2rad(lat0)), 110.57                    # km per degree
+    x, y = np.asarray(lon) * kx, np.asarray(lat) * ky
+
+    # axial coordinates, rounded to the nearest hexagon (cube rounding)
+    q = (np.sqrt(3) / 3 * x - y / 3) / size_km
+    r = (2 / 3 * y) / size_km
+    s = -q - r
+    rq, rr, rs = np.round(q), np.round(r), np.round(s)
+    dq, dr, ds = np.abs(rq - q), np.abs(rr - r), np.abs(rs - s)
+    fix_q = (dq > dr) & (dq > ds)
+    fix_r = ~fix_q & (dr > ds)
+    rq = np.where(fix_q, -rr - rs, rq)
+    rr = np.where(fix_r, -rq - rs, rr)
+
+    g = (pd.DataFrame({"q": rq.astype(int), "r": rr.astype(int), "v": values})
+         .dropna().groupby(["q", "r"])["v"].agg(["mean", "count"]).reset_index())
+    g = g.loc[g["count"] >= min_points]
+
+    cx = size_km * np.sqrt(3) * (g["q"] + g["r"] / 2)
+    cy = size_km * 1.5 * g["r"]
+    ang = np.deg2rad(30 + 60 * np.arange(6))
+    g["polygon"] = [[[(px + size_km * np.cos(a)) / kx, (py + size_km * np.sin(a)) / ky] for a in ang]
+                    for px, py in zip(cx, cy)]
+    return g[["polygon", "mean", "count"]].reset_index(drop=True)
 
 
 # ============================ CACHED LOADERS ============================
@@ -137,6 +207,53 @@ def load_countries():
 @st.cache_data
 def load_baseline() -> pd.DataFrame | None:
     return pd.read_csv(BASELINE_CSV, index_col="Model") if BASELINE_CSV.exists() else None
+
+
+CNN_PT = DATA_PROCESSED / "patch_cnn.pt"
+
+
+@st.cache_resource(show_spinner="Loading the CNN...")
+def load_cnn() -> dict:
+    """patch_cnn.pt from the notebook, rebuilt as the same network (notebook section "5. THE 2D CNN")."""
+    import torch
+    import torch.nn as nn
+
+    class _Net(nn.Module):
+        def __init__(self, c_in, n_scalar, filters, dropout):
+            super().__init__()
+            self.conv = nn.Sequential(
+                nn.Conv2d(c_in, filters, 3, padding=1), nn.BatchNorm2d(filters), nn.ReLU(),
+                nn.Conv2d(filters, filters * 2, 3, padding=1), nn.BatchNorm2d(filters * 2), nn.ReLU(),
+                nn.AdaptiveAvgPool2d(2), nn.Flatten())
+            self.head = nn.Sequential(nn.Linear(filters * 2 * 4 + n_scalar, 64), nn.ReLU(),
+                                      nn.Dropout(dropout), nn.Linear(64, 1))
+
+        def forward(self, x, s):
+            z = self.conv(x)
+            if s.shape[1] > 0:
+                z = torch.cat([z, s], dim=1)
+            return self.head(z).squeeze(1)
+
+    ck = torch.load(CNN_PT, weights_only=False, map_location="cpu")
+    net = _Net(len(ck["channels"]), len(ck["scalars"]), ck["params"]["filters"], ck["params"]["dropout"])
+    net.load_state_dict(ck["state_dict"])
+    net.eval()
+    return {"net": net, **{k: ck[k] for k in ("channels", "scalars", "radius", "mu", "sd", "smu", "ssd")}}
+
+
+def cnn_predict(cnn, P, S=None):
+    """P(high potential) from patches P (n, C, H, W) and optional scalar inputs S (n, k)."""
+    import torch
+
+    S = np.zeros((len(P), 0), dtype=np.float32) if S is None else S
+    Pn = (P - cnn["mu"][None, :, None, None]) / cnn["sd"][None, :, None, None]
+    Sn = (np.log1p(np.clip(S, 0, None)) - cnn["smu"]) / cnn["ssd"]
+    out = []
+    with torch.no_grad():
+        for i in range(0, len(Pn), 1024):
+            out.append(torch.sigmoid(cnn["net"](torch.tensor(Pn[i:i + 1024], dtype=torch.float32),
+                                                torch.tensor(Sn[i:i + 1024], dtype=torch.float32))).numpy())
+    return np.concatenate(out)
 
 
 @st.cache_resource(show_spinner="Loading the trained models (about 15 s, once)...")
