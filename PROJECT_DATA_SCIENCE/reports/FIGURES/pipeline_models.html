@@ -703,7 +703,7 @@ a.param-doc-link::before {
   justify-content: center;
   margin-top: 0.5em;
 }
-</style><body><div id="sk-container-id-5" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preprocess&#x27;,
+</style><body><div id="sk-container-id-13" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preprocess&#x27;,
                  ColumnTransformer(transformers=[(&#x27;numeric&#x27;,
                                                   Pipeline(steps=[(&#x27;imputer&#x27;,
                                                                    SimpleImputer(strategy=&#x27;median&#x27;)),
@@ -712,15 +712,15 @@ a.param-doc-link::before {
                                                   [&#x27;precipitation_mean&#x27;,
                                                    &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;,
                                                    &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;,
-                                                   &#x27;slope&#x27;, &#x27;built_up&#x27;,
-                                                   &#x27;ndvi_mean&#x27;,
+                                                   &#x27;slope&#x27;, &#x27;dist_to_road_m&#x27;,
+                                                   &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;,
                                                    &#x27;ndvi_resilience&#x27;,
                                                    &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;,
-                                                   &#x27;protected&#x27;, &#x27;tmin&#x27;,
-                                                   &#x27;water&#x27;])])),
+                                                   &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;,
+                                                   &#x27;dist_to_settlement_m&#x27;])])),
                 (&#x27;model&#x27;,
                  RandomForestClassifier(class_weight=&#x27;balanced&#x27;, n_jobs=-1,
-                                        random_state=42))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-20" type="checkbox" ><label for="sk-estimator-id-20" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
+                                        random_state=42))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-58" type="checkbox" ><label for="sk-estimator-id-58" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -810,7 +810,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-21" type="checkbox" ><label for="sk-estimator-id-21" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>preprocess: ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for preprocess: ColumnTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__">
+    </div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-59" type="checkbox" ><label for="sk-estimator-id-59" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>preprocess: ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for preprocess: ColumnTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -960,7 +960,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-22" type="checkbox" ><label for="sk-estimator-id-22" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>numeric</div></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__"><pre>[&#x27;precipitation_mean&#x27;, &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;, &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;, &#x27;slope&#x27;, &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;, &#x27;ndvi_resilience&#x27;, &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;, &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;]</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-23" type="checkbox" ><label for="sk-estimator-id-23" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>SimpleImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__imputer__">
+    </div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-60" type="checkbox" ><label for="sk-estimator-id-60" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>numeric</div></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__"><pre>[&#x27;precipitation_mean&#x27;, &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;, &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;, &#x27;slope&#x27;, &#x27;dist_to_road_m&#x27;, &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;, &#x27;ndvi_resilience&#x27;, &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;, &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;, &#x27;dist_to_settlement_m&#x27;]</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-61" type="checkbox" ><label for="sk-estimator-id-61" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>SimpleImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__imputer__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -1090,7 +1090,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-24" type="checkbox" ><label for="sk-estimator-id-24" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PowerTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.preprocessing.PowerTransformer.html">?<span>Documentation for PowerTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__scaler__">
+    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-62" type="checkbox" ><label for="sk-estimator-id-62" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PowerTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.preprocessing.PowerTransformer.html">?<span>Documentation for PowerTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__scaler__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -1160,7 +1160,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-25" type="checkbox" ><label for="sk-estimator-id-25" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>RandomForestClassifier</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.ensemble.RandomForestClassifier.html">?<span>Documentation for RandomForestClassifier</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
+    </div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-63" type="checkbox" ><label for="sk-estimator-id-63" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>RandomForestClassifier</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.ensemble.RandomForestClassifier.html">?<span>Documentation for RandomForestClassifier</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -1720,7 +1720,7 @@ function forceTheme(elementId) {
     }
 }
 
-forceTheme('sk-container-id-5');</script></body><h3>Logistic Regression</h3><style>.sk-global {
+forceTheme('sk-container-id-13');</script></body><h3>Logistic Regression</h3><style>.sk-global {
   /* Definition of color scheme common for light and dark mode */
   --sklearn-color-text: #000;
   --sklearn-color-text-muted: #666;
@@ -2425,7 +2425,7 @@ a.param-doc-link::before {
   justify-content: center;
   margin-top: 0.5em;
 }
-</style><body><div id="sk-container-id-6" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preprocess&#x27;,
+</style><body><div id="sk-container-id-14" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preprocess&#x27;,
                  ColumnTransformer(transformers=[(&#x27;numeric&#x27;,
                                                   Pipeline(steps=[(&#x27;imputer&#x27;,
                                                                    SimpleImputer(strategy=&#x27;median&#x27;)),
@@ -2434,14 +2434,14 @@ a.param-doc-link::before {
                                                   [&#x27;precipitation_mean&#x27;,
                                                    &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;,
                                                    &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;,
-                                                   &#x27;slope&#x27;, &#x27;built_up&#x27;,
-                                                   &#x27;ndvi_mean&#x27;,
+                                                   &#x27;slope&#x27;, &#x27;dist_to_road_m&#x27;,
+                                                   &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;,
                                                    &#x27;ndvi_resilience&#x27;,
                                                    &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;,
-                                                   &#x27;protected&#x27;, &#x27;tmin&#x27;,
-                                                   &#x27;water&#x27;])])),
+                                                   &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;,
+                                                   &#x27;dist_to_settlement_m&#x27;])])),
                 (&#x27;model&#x27;,
-                 LogisticRegression(class_weight=&#x27;balanced&#x27;, max_iter=5000))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-26" type="checkbox" ><label for="sk-estimator-id-26" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
+                 LogisticRegression(class_weight=&#x27;balanced&#x27;, max_iter=5000))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-64" type="checkbox" ><label for="sk-estimator-id-64" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -2531,7 +2531,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-27" type="checkbox" ><label for="sk-estimator-id-27" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>preprocess: ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for preprocess: ColumnTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__">
+    </div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-65" type="checkbox" ><label for="sk-estimator-id-65" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>preprocess: ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for preprocess: ColumnTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -2681,7 +2681,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-28" type="checkbox" ><label for="sk-estimator-id-28" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>numeric</div></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__"><pre>[&#x27;precipitation_mean&#x27;, &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;, &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;, &#x27;slope&#x27;, &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;, &#x27;ndvi_resilience&#x27;, &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;, &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;]</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-29" type="checkbox" ><label for="sk-estimator-id-29" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>SimpleImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__imputer__">
+    </div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-66" type="checkbox" ><label for="sk-estimator-id-66" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>numeric</div></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__"><pre>[&#x27;precipitation_mean&#x27;, &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;, &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;, &#x27;slope&#x27;, &#x27;dist_to_road_m&#x27;, &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;, &#x27;ndvi_resilience&#x27;, &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;, &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;, &#x27;dist_to_settlement_m&#x27;]</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-67" type="checkbox" ><label for="sk-estimator-id-67" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>SimpleImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__imputer__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -2811,7 +2811,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-30" type="checkbox" ><label for="sk-estimator-id-30" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PowerTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.preprocessing.PowerTransformer.html">?<span>Documentation for PowerTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__scaler__">
+    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-68" type="checkbox" ><label for="sk-estimator-id-68" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PowerTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.preprocessing.PowerTransformer.html">?<span>Documentation for PowerTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__scaler__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -2881,7 +2881,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-31" type="checkbox" ><label for="sk-estimator-id-31" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>LogisticRegression</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.linear_model.LogisticRegression.html">?<span>Documentation for LogisticRegression</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
+    </div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-69" type="checkbox" ><label for="sk-estimator-id-69" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>LogisticRegression</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.linear_model.LogisticRegression.html">?<span>Documentation for LogisticRegression</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -3341,7 +3341,7 @@ function forceTheme(elementId) {
     }
 }
 
-forceTheme('sk-container-id-6');</script></body><h3>XGBoost</h3><style>.sk-global {
+forceTheme('sk-container-id-14');</script></body><h3>XGBoost</h3><style>.sk-global {
   /* Definition of color scheme common for light and dark mode */
   --sklearn-color-text: #000;
   --sklearn-color-text-muted: #666;
@@ -4046,7 +4046,7 @@ a.param-doc-link::before {
   justify-content: center;
   margin-top: 0.5em;
 }
-</style><body><div id="sk-container-id-7" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preprocess&#x27;,
+</style><body><div id="sk-container-id-15" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preprocess&#x27;,
                  ColumnTransformer(transformers=[(&#x27;numeric&#x27;,
                                                   Pipeline(steps=[(&#x27;imputer&#x27;,
                                                                    SimpleImputer(strategy=&#x27;median&#x27;)),
@@ -4055,14 +4055,12 @@ a.param-doc-link::before {
                                                   [&#x27;precipitation_mean&#x27;,
                                                    &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;,
                                                    &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;,
-                                                   &#x27;slope&#x27;, &#x27;built_up&#x27;,
-                                                   &#x27;ndvi_mean&#x27;,
+                                                   &#x27;slope&#x27;, &#x27;dist_to_road_m&#x27;,
+                                                   &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;,
                                                    &#x27;ndvi_resilience&#x27;,
                                                    &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;,
-                                                   &#x27;protected&#x27;, &#x27;tmin&#x27;,
-                                                   &#x27;water&#x27;])])),
-                (&#x27;model&#x27;,
-                 XGBClas...
+                                                   &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;,
+                                                   &#x27;dis...
                                feature_types=None, feature_weights=None,
                                gamma=None, grow_policy=None,
                                importance_type=None,
@@ -4073,7 +4071,7 @@ a.param-doc-link::before {
                                min_child_weight=None, missing=nan,
                                monotone_constraints=None, multi_strategy=None,
                                n_estimators=None, n_jobs=-1,
-                               num_parallel_tree=None, ...))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-32" type="checkbox" ><label for="sk-estimator-id-32" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
+                               num_parallel_tree=None, ...))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-70" type="checkbox" ><label for="sk-estimator-id-70" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -4163,7 +4161,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-33" type="checkbox" ><label for="sk-estimator-id-33" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>preprocess: ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for preprocess: ColumnTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__">
+    </div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-71" type="checkbox" ><label for="sk-estimator-id-71" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>preprocess: ColumnTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for preprocess: ColumnTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -4313,7 +4311,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-34" type="checkbox" ><label for="sk-estimator-id-34" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>numeric</div></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__"><pre>[&#x27;precipitation_mean&#x27;, &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;, &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;, &#x27;slope&#x27;, &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;, &#x27;ndvi_resilience&#x27;, &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;, &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;]</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-35" type="checkbox" ><label for="sk-estimator-id-35" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>SimpleImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__imputer__">
+    </div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-72" type="checkbox" ><label for="sk-estimator-id-72" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>numeric</div></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__"><pre>[&#x27;precipitation_mean&#x27;, &#x27;soil_moisture&#x27;, &#x27;tmean&#x27;, &#x27;soc&#x27;, &#x27;ph&#x27;, &#x27;elevation&#x27;, &#x27;slope&#x27;, &#x27;dist_to_road_m&#x27;, &#x27;built_up&#x27;, &#x27;ndvi_mean&#x27;, &#x27;ndvi_resilience&#x27;, &#x27;ndvi_std&#x27;, &#x27;tmax&#x27;, &#x27;protected&#x27;, &#x27;tmin&#x27;, &#x27;water&#x27;, &#x27;dist_to_settlement_m&#x27;]</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-73" type="checkbox" ><label for="sk-estimator-id-73" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>SimpleImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__imputer__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -4443,7 +4441,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-36" type="checkbox" ><label for="sk-estimator-id-36" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PowerTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.preprocessing.PowerTransformer.html">?<span>Documentation for PowerTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__scaler__">
+    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-74" type="checkbox" ><label for="sk-estimator-id-74" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PowerTransformer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.preprocessing.PowerTransformer.html">?<span>Documentation for PowerTransformer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="preprocess__numeric__scaler__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -4513,7 +4511,7 @@ a.param-doc-link::before {
                 </table>
             </details>
         </div>
-    </div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-37" type="checkbox" ><label for="sk-estimator-id-37" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>XGBClassifier</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://xgboost.readthedocs.io/en/release_3.4.0/python/python_api.html#xgboost.XGBClassifier">?<span>Documentation for XGBClassifier</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
+    </div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-75" type="checkbox" ><label for="sk-estimator-id-75" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>XGBClassifier</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://xgboost.readthedocs.io/en/release_3.4.0/python/python_api.html#xgboost.XGBClassifier">?<span>Documentation for XGBClassifier</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -5466,7 +5464,7 @@ function forceTheme(elementId) {
     }
 }
 
-forceTheme('sk-container-id-7');</script></body><h3>CNN (2D patches)</h3><style>.sk-global {
+forceTheme('sk-container-id-15');</script></body><h3>CNN (2D patches)</h3><style>.sk-global {
   /* Definition of color scheme common for light and dark mode */
   --sklearn-color-text: #000;
   --sklearn-color-text-muted: #666;
@@ -6171,8 +6169,9 @@ a.param-doc-link::before {
   justify-content: center;
   margin-top: 0.5em;
 }
-</style><body><div id="sk-container-id-8" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>PatchCNNClassifier(random_state=42,
-                   store=&lt;__main__.PatchStore object at 0x0000025F01D9BCB0&gt;)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-38" type="checkbox" checked><label for="sk-estimator-id-38" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PatchCNNClassifier</div></div><div><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
+</style><body><div id="sk-container-id-16" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>PatchCNNClassifier(random_state=42,
+                   scalar_cols=(&#x27;dist_to_road_m&#x27;, &#x27;dist_to_settlement_m&#x27;),
+                   store=&lt;__main__.PatchStore object at 0x0000025F01D9B4D0&gt;)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-76" type="checkbox" checked><label for="sk-estimator-id-76" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PatchCNNClassifier</div></div><div><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -6186,7 +6185,18 @@ a.param-doc-link::before {
                           this.parentElement.nextElementSibling)"
             ></button></td>
             <td class="param">store</td>
-            <td class="value">&lt;__main__.Pat...0025F01D9BCB0&gt;</td>
+            <td class="value">&lt;__main__.Pat...0025F01D9B4D0&gt;</td>
+        </tr>
+    
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy scalar_cols to clipboard"
+                 onclick="copyToClipboard('scalar_cols',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">scalar_cols</td>
+            <td class="value">(&#x27;dist_to_road_m&#x27;, ...)</td>
         </tr>
     
 
@@ -6198,17 +6208,6 @@ a.param-doc-link::before {
             ></button></td>
             <td class="param">random_state</td>
             <td class="value">42</td>
-        </tr>
-    
-
-        <tr class="default">
-            <td><button type="button" class="copy-paste-icon"
-                 aria-label="Copy scalar_cols to clipboard"
-                 onclick="copyToClipboard('scalar_cols',
-                          this.parentElement.nextElementSibling)"
-            ></button></td>
-            <td class="param">scalar_cols</td>
-            <td class="value">()</td>
         </tr>
     
 
@@ -6473,4 +6472,4 @@ function forceTheme(elementId) {
     }
 }
 
-forceTheme('sk-container-id-8');</script></body></body></html>
+forceTheme('sk-container-id-16');</script></body></body></html>
