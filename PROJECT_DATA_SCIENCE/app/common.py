@@ -248,11 +248,16 @@ PATCHES_DIR = DATA_PROCESSED / "patches"
 @st.cache_resource(show_spinner=False)
 def load_site_patches(n_points, n_channels, radius):
     """P_all from the notebook's patch cache (section "2. IMAGE PATCHES"): one patch per sampled point, same row
-    order as load_points(), memory-mapped. The newest cache that fits the points and the CNN layers wins; None if none does."""
+    order as load_points(). The newest cache that fits the points and the CNN layers wins; None if none does.
+    Read fully into memory, not memory-mapped: on Windows a mapped file cannot be overwritten, which breaks
+    the notebook's np.save while the app is running."""
     side = 2 * radius + 1
     for f in sorted(PATCHES_DIR.glob(f"*/P_all_r{radius}.npy"), key=lambda p: p.stat().st_mtime, reverse=True):
-        P = np.load(f, mmap_mode="r")
-        if P.shape == (n_points, n_channels, side, side):
+        m = np.load(f, mmap_mode="r")                    # cheap shape check without reading the data
+        ok = m.shape == (n_points, n_channels, side, side)
+        P = np.array(m) if ok else None                  # copy into RAM
+        del m                                            # closes the mapping, so the file is free again
+        if ok:
             return P
     return None
 
