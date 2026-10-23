@@ -2,15 +2,17 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from common import BEST_MODEL, FEATURE_INFO, HIGH_T, LOW_T, TIER_NAMES, load_models, load_points, tier_of
+from common import (BEST_MODEL, FEATURE_INFO, HIGH_T, LOW_T, TIER_NAMES, cnn_predict, load_cnn, load_models,
+                    load_points, load_site_patches, tier_of)
 
 st.title("Score a site", anchor=False)
 st.caption("Start from a real site, change its conditions, and see how the trained models respond.")
 
 df = load_points()
+CNN_NAME = "CNN (2D patches)"
 BINARY = ["built_up", "water", "protected"]
 CONTINUOUS = ["precipitation_mean", "soil_moisture", "tmean", "tmin", "tmax", "soc", "ph", "elevation", "slope",
-              "ndvi_mean", "ndvi_std", "ndvi_resilience"]
+              "ndvi_mean", "ndvi_std", "ndvi_resilience", "dist_to_road_m", "dist_to_settlement_m"]
 lo_q, hi_q = df[CONTINUOUS].quantile(0.001), df[CONTINUOUS].quantile(0.999)
 
 
@@ -22,12 +24,14 @@ def load_site(idx):
     for c in BINARY:
         st.session_state[f"in_{c}"] = bool(row[c])
     st.session_state.site_label = f"site {idx} ({row['lat']:.4f}° N, {row['lon']:.4f}° E)"
+    st.session_state.site_idx = idx
+    st.session_state.site_inputs = {c: st.session_state[f"in_{c}"] for c in CONTINUOUS + BINARY}
 
 
 # a site chosen on the map arrives here; otherwise start from the median site
 if "predict_site" in st.session_state:
     load_site(st.session_state.pop("predict_site"))
-elif "in_soil_moisture" not in st.session_state:
+elif "site_inputs" not in st.session_state or any(f"in_{c}" not in st.session_state for c in CONTINUOUS + BINARY):
     load_site((df[CONTINUOUS] - df[CONTINUOUS].median()).abs().div(df[CONTINUOUS].std()).sum(axis=1).idxmin())
 
 with st.container(border=True):
@@ -67,6 +71,19 @@ except MemoryError:
 x =pd.DataFrame([{c: float(st.session_state[f"in_{c}"]) for c in bundle["features"]}])[bundle["features"]]
 probs = {name: float(m.predict_proba(x)[0, 1]) for name, m in bundle["models"].items()}
 
+# The CNN sees the 5×5 patch around the loaded site: each layer is shifted by how far its slider moved,
+# so untouched inputs give the site's score from the Opportunity map.
+cnn = load_cnn()
+P_all = load_site_patches(len(df), len(cnn["channels"]), cnn["radius"])
+if P_all is not None:
+    patch = np.array(P_all[df.index.get_loc(st.session_state.site_idx)], dtype=np.float32)
+    for k, c in enumerate(cnn["channels"]):
+        patch[k] += float(st.session_state[f"in_{c}"]) - float(st.session_state.site_inputs[c])
+        if c in BINARY:
+            patch[k] = np.clip(patch[k], 0, 1)
+    S = np.array([[float(st.session_state[f"in_{c}"]) for c in cnn["scalars"]]], np.float32) if cnn["scalars"] else None
+    probs[CNN_NAME] = float(cnn_predict(cnn, patch[None], S)[0])
+
 best = probs[BEST_MODEL]
 tier = int(tier_of(best))
 with st.container(border=True):
@@ -76,5 +93,9 @@ with st.container(border=True):
     with st.container(horizontal=True):
         for name, p in probs.items():
             st.metric(name, f"{p:.2f}", border=True)
-    st.caption("The CNN is not available here: it needs the 5×5 satellite image patch around a real site, "
-               "not single values. Its scores are on the Opportunity map.")
+    if CNN_NAME in probs:
+        st.caption("The CNN reads the 5×5 image patch (1.25 km × 1.25 km) around the loaded site. Moving a slider "
+                   "shifts that whole layer of the patch by the same amount.")
+    else:
+        st.caption("The CNN is not available here: no saved image patches match the sampled sites. "
+                   "Re-run the notebook's patch section. Its scores are on the Opportunity map.")

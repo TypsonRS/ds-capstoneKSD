@@ -46,6 +46,8 @@ FEATURE_INFO = {   # label, unit, source
     "ph": ("Soil pH (0-20 cm)", "", "iSDAsoil"),
     "elevation": ("Elevation", "m", "SRTM"),
     "slope": ("Slope", "°", "SRTM"),
+    "dist_to_road_m": ("Distance to nearest road", "m", "OpenStreetMap"),
+    "dist_to_settlement_m": ("Distance to nearest settlement", "m", "OpenStreetMap"),
     "built_up": ("Built-up", "0/1", "ESA WorldCover"),
     "water": ("Water", "0/1", "ESA WorldCover"),
     "protected": ("Protected area", "0/1", "WDPA"),
@@ -184,8 +186,7 @@ def load_points() -> pd.DataFrame:
     if len(feats) != len(preds) or not np.allclose(feats.geometry.x.values, preds.geometry.x.values):
         raise RuntimeError("Features and predictions are not aligned - re-run the notebook.")
 
-    df = pd.DataFrame(feats.drop(columns=["geometry", "dummy", "proxy_target", "dist_to_road_m",
-                                          "dist_to_settlement_m"], errors="ignore"))
+    df = pd.DataFrame(feats.drop(columns=["geometry", "dummy", "proxy_target"], errors="ignore"))
     df["lon"], df["lat"] = feats.geometry.x.values, feats.geometry.y.values
     for col in ["opportunity", *MODEL_COLS.values()]:
         df[col] = preds[col].values
@@ -239,6 +240,21 @@ def load_cnn() -> dict:
     net.load_state_dict(ck["state_dict"])
     net.eval()
     return {"net": net, **{k: ck[k] for k in ("channels", "scalars", "radius", "mu", "sd", "smu", "ssd")}}
+
+
+PATCHES_DIR = DATA_PROCESSED / "patches"
+
+
+@st.cache_resource(show_spinner=False)
+def load_site_patches(n_points, n_channels, radius):
+    """P_all from the notebook's patch cache (section "2. IMAGE PATCHES"): one patch per sampled point, same row
+    order as load_points(), memory-mapped. The newest cache that fits the points and the CNN layers wins; None if none does."""
+    side = 2 * radius + 1
+    for f in sorted(PATCHES_DIR.glob(f"*/P_all_r{radius}.npy"), key=lambda p: p.stat().st_mtime, reverse=True):
+        P = np.load(f, mmap_mode="r")
+        if P.shape == (n_points, n_channels, side, side):
+            return P
+    return None
 
 
 def cnn_predict(cnn, P, S=None):
