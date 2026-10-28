@@ -14,6 +14,7 @@ page = st.navigation(
         st.Page("app_pages/opportunity_map.py", title="Opportunity map", icon=":material/map:"),
         st.Page("app_pages/explore.py", title="Explore the data", icon=":material/query_stats:"),
         st.Page("app_pages/models.py", title="Model performance", icon=":material/model_training:"),
+        st.Page("app_pages/cost_return.py", title="Cost and return", icon=":material/payments:"),
         st.Page("app_pages/predict.py", title="Score a site", icon=":material/psychology:"),
         st.Page("app_pages/new_region.py", title="Score a new region", icon=":material/travel_explore:"),
     ],
