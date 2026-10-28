@@ -1,0 +1,157 @@
+market_id,market,countryiso3,admin1,admin2,latitude,longitude
+2659,Korbongou,TGO,Savanes,Tone,10.94,0.3
+2660,Amegnran,TGO,Maritime,Vo,6.47,1.57
+2661,Cinkassé,TGO,Savanes,Tone,11.1,0.02
+2662,Lomé,TGO,Maritime,Golfe,6.12,1.23
+2663,Anie,TGO,Plateaux,Ogou,7.76,1.19
+2664,Kara,TGO,Kara,Kozah,9.55,1.19
+9763,Nadjoundi centre,TGO,Savanes,Tone,11.01,0.19
+9764,Cinkasse centre,TGO,Savanes,Tone,11.1,0.01
+9765,Mandouri centre,TGO,Savanes,Kpendjal,10.85,0.82
+9766,Borgou centre,TGO,Savanes,Oti,10.66,0.55
+9767,Ogaro centre,TGO,Savanes,Kpendjal,10.73,0.69
+9768,Pognon centre,TGO,Savanes,Kpendjal,10.98,0.51
+9769,Mango centre,TGO,Savanes,Oti,10.33,0.47
+9770,Nagbeni centre,TGO,Savanes,Oti,10.64,0.34
+9771,Gando centre,TGO,Savanes,Oti,10.35,0.75
+9772,Takpamba centre,TGO,Savanes,Oti,9.97,0.57
+9773,Bombouaka centre,TGO,Savanes,Tandjouare,10.7,0.21
+9774,Nano centre,TGO,Savanes,Tandjouare,10.7,0.11
+9775,Dapaong centre,TGO,Savanes,Tone,10.86,0.2
+9776,Naki ouest centre,TGO,Savanes,Tone,10.91,0.09
+9777,Tami centre,TGO,Savanes,Tone,10.86,0.04
+9778,Bafilo,TGO,Kara,Assoli,9.36,1.25
+9779,Efolo,TGO,Kara,Assoli,9.28,1.09
+9780,Agbebou,TGO,Kara,Kozah,9.46,1.34
+9781,Bangeli,TGO,Kara,Bassar,9.42,0.62
+9782,Kabou,TGO,Kara,Bassar,9.46,0.81
+9783,Bassar,TGO,Kara,Bassar,9.26,0.79
+9784,Sanda kagbanda,TGO,Kara,Bassar,9.49,0.9
+9785,Ketao,TGO,Kara,Binah,9.66,1.31
+9786,Madjatom,TGO,Kara,Binah,9.84,1.35
+9787,Babure,TGO,Kara,Dankpen,9.54,0.58
+9788,Guerin kouka,TGO,Kara,Dankpen,9.7,0.6
+9789,Namon,TGO,Kara,Dankpen,9.73,0.81
+9790,Broukou,TGO,Kara,Doufelgou,9.74,0.92
+9791,Niamtougou,TGO,Kara,Doufelgou,9.77,1.11
+9792,Defale,TGO,Kara,Doufelgou,9.87,1.09
+9793,Kante,TGO,Kara,Keran,9.95,1.06
+9794,Atalote,TGO,Kara,Keran,9.94,0.94
+9795,Nadoba,TGO,Kara,Keran,10.14,1.08
+9796,Lama,TGO,Kara,Kozah,9.56,1.19
+9797,Mazada,TGO,Kara,Kozah,9.64,1.14
+9798,Awandjalo,TGO,Kara,Kozah,9.45,1.21
+9799,Koudjoukada,TGO,Kara,Assoli,9.4,1.11
+9833,Biankouri,TGO,Savanes,Tone,11.02,0.05
+9834,Sam-Naba,TGO,Savanes,Tone,11.07,0.17
+9835,Timbou,TGO,Savanes,Tone,11.05,0.1
+9836,Bagre tambima,TGO,Savanes,Kpendjal,10.87,0.73
+9837,Koundjouare,TGO,Savanes,Kpendjal,10.94,0.64
+9838,Bouldjoare,TGO,Savanes,Kpendjal,10.84,0.67
+9839,BATEBOGOU,TGO,Savanes,Kpendjal,10.72,0.36
+9840,DJIBONTOTI,TGO,Savanes,Kpendjal,10.93,0.51
+9841,PAPRI CENTRE,TGO,Savanes,Kpendjal,10.99,0.42
+9842,TAMBONGA,TGO,Savanes,Kpendjal,10.95,0.44
+9843,Namoundjoga Centre,TGO,Savanes,Kpendjal,10.89,0.4
+9844,Koumongou,TGO,Savanes,Oti,10.19,0.45
+9845,Barkoissi,TGO,Savanes,Oti,10.56,0.3
+9846,Tchanaga,TGO,Savanes,Oti,10.49,0.49
+9847,SAGBIEBOU,TGO,Savanes,Oti,10.25,0.64
+9848,Mogou,TGO,Savanes,Oti,10.38,0.65
+9849,Tchamonga,TGO,Savanes,Oti,10.56,0.73
+9850,Pligou,TGO,Savanes,Tandjouare,10.65,0.29
+9851,Yembour,TGO,Savanes,Tandjouare,10.54,0.14
+9852,Nandodani,TGO,Savanes,Tandjouare,10.67,0.2
+9853,KOURIENTRE CENTRE,TGO,Savanes,Tone,10.98,0.22
+9854,MARGBA,TGO,Savanes,Tone,11,0.26
+9855,DJAKPAGA,TGO,Savanes,Tone,11.06,0.23
+9856,TOAGA,TGO,Savanes,Tone,10.89,0.25
+9857,NANERGOU CENTRE,TGO,Savanes,Tone,10.91,0.15
+9858,DJITAGUE,TGO,Savanes,Tone,10.99,0.09
+9859,NIOUKPOURMA,TGO,Savanes,Tone,10.84,0.15
+9860,KOURDJOAKE,TGO,Savanes,Tone,10.82,0.19
+9861,YEMBOATE,TGO,Savanes,Tone,11.05,0.29
+9864,PANABAGOU,TGO,Savanes,Tone,10.78,0.25
+9865,Tarabou,TGO,Savanes,Oti,10.08,0.55
+11910,Agoè Assiyéyé,TGO,Maritime,Golfe,6.2,1.16
+11911,Légbassi,TGO,Maritime,Golfe,6.27,1.15
+11912,Vakpossito,TGO,Maritime,Golfe,6.22,1.16
+11913,Zongo,TGO,Maritime,Golfe,6.25,1.21
+11914,Sanguera,TGO,Maritime,Golfe,6.23,1.12
+11915,Adétikopé,TGO,Maritime,Zio,6.32,1.22
+11916,Akodésséwa,TGO,Maritime,Golfe,6.15,1.27
+11917,Hédzranawoé,TGO,Maritime,Golfe,6.18,1.24
+11918,Gbossimé,TGO,Maritime,Golfe,6.15,1.22
+11919,Ahanou Kopé,TGO,Maritime,Golfe,6.14,1.22
+11920,Totsi,TGO,Maritime,Golfe,6.19,1.19
+11921,Baguida,TGO,Maritime,Golfe,6.17,1.33
+11922,Lankouvi,TGO,Maritime,Golfe,6.19,1.13
+11923,Assahoun,TGO,Maritime,Ave,6.45,0.91
+11924,Noépé,TGO,Maritime,Ave,6.25,1.05
+11926,Djoda,TGO,Maritime,Lacs,6.26,1.68
+11927,Anfoin,TGO,Maritime,Lacs,6.33,1.61
+11928,Agbata,TGO,Maritime,Golfe,6.19,1.39
+11929,Vogan Gbeke,TGO,Maritime,Vo,6.34,1.52
+11930,Togoville,TGO,Maritime,Vo,6.25,1.48
+11931,Akoumapé,TGO,Maritime,Vo,6.38,1.45
+11932,Tabligbo,TGO,Maritime,Yoto,6.59,1.5
+11933,Tchékpo,TGO,Maritime,Yoto,6.53,1.36
+11934,Gboto Vodupé,TGO,Maritime,Yoto,6.67,1.53
+11935,Tsévié,TGO,Maritime,Zio,6.43,1.21
+11936,Kovié,TGO,Maritime,Zio,6.33,1.11
+11937,Agbélouvé,TGO,Maritime,Zio,6.68,1.17
+11938,Gapé-centre,TGO,Maritime,Zio,6.67,0.97
+11939,PAGALA-GARE,TGO,Centrale,Blitta,8.18,0.96
+11940,LANGABOU,TGO,Centrale,Blitta,8.12,1.14
+11941,DJARKPANGA,TGO,Centrale,Sotouboua,8.78,0.56
+11942,TINDJASSE,TGO,Centrale,Sotouboua,8.65,0.45
+11943,SOTOUBOUA,TGO,Centrale,Sotouboua,8.56,0.98
+11944,ADJENGRE,TGO,Centrale,Sotouboua,8.66,1.02
+11945,KAZABOUA,TGO,Centrale,Sotouboua,8.43,1.08
+11946,TCHAMBA,TGO,Centrale,Tchamba,9.02,1.41
+11947,KOUSSOUNTOU,TGO,Centrale,Tchamba,8.82,1.51
+11948,KABOLI,TGO,Centrale,Tchamba,8.75,1.59
+11950,LAMA-TESSI,TGO,Centrale,Tchaoudjo,8.84,1.08
+11951,Ayore,TGO,Plateaux,Ogou,7.68,1.41
+11952,Elavagnon,TGO,Plateaux,Est-Mono,7.95,1.28
+11953,Moritan,TGO,Plateaux,Est-Mono,8.11,1.35
+11954,Nyamassila,TGO,Centrale,Blitta,7.99,1.19
+11955,NOTSE,TGO,Plateaux,Haho,6.94,1.18
+11956,KPOVE,TGO,Plateaux,Haho,6.97,1.3
+11957,WAHALA,TGO,Plateaux,Ogou,7.18,1.16
+11958,Tohoun,TGO,Plateaux,Moyen-Mono,7.03,1.61
+11959,Kpékplémé,TGO,Plateaux,Moyen-Mono,7.32,1.63
+11960,Agbonou,TGO,Plateaux,Ogou,7.51,1.16
+11961,Akparé,TGO,Plateaux,Ogou,7.53,1.13
+11962,Homa,TGO,Plateaux,Ogou,7.46,1.59
+11963,Gléï,TGO,Plateaux,Ogou,7.29,1.16
+11964,Agou gare,TGO,Plateaux,Agou,6.84,0.72
+11965,Amoussoukope,TGO,Plateaux,Agou,6.66,0.85
+11966,Elavanyo,TGO,Plateaux,Danyi,7.28,0.71
+11967,Apéyémé,TGO,Plateaux,Danyi,7.19,0.69
+11968,Lavié,TGO,Plateaux,Kloto,7.01,0.68
+11969,Tomégbé,TGO,Plateaux,Wawa,7.51,0.6
+11971,Amou-oblo,TGO,Plateaux,Amou,7.39,0.88
+11972,Temedja,TGO,Plateaux,Amou,7.52,1.06
+11973,Amlamé,TGO,Plateaux,Amou,7.45,0.9
+11974,Badou,TGO,Plateaux,Wawa,7.57,0.61
+11975,Zogbegan,TGO,Plateaux,Wawa,7.58,0.68
+11976,Agbo-kopé,TGO,Plateaux,Wawa,7.44,0.67
+11977,Kougnohou,TGO,Plateaux,Wawa,7.65,0.79
+11978,Sérégbéné,TGO,Plateaux,Wawa,7.87,0.74
+11979,Adéta,TGO,Plateaux,Kloto,7.13,0.72
+11980,Elé,TGO,Plateaux,Kloto,7.28,0.8
+12034,Afagnagan,TGO,Maritime,Lacs,6.49,1.61
+12068,AGBATI,TGO,Plateaux,Haho,7.07,1.15
+12069,Kpalimé,TGO,Plateaux,Kloto,6.92,0.64
+12070,Elavagnon (lacs),TGO,Maritime,Lacs,6.23,1.59
+12071,Komah,TGO,Centrale,Tchaoudjo,8.98,1.14
+12074,Agoegan,TGO,Maritime,Lacs,6.26,1.68
+12075,Adidogomé,TGO,Maritime,Golfe,6.2,1.16
+12076,Agbandaoudé,TGO,Centrale,Tchaoudjo,9.25,1.36
+12077,Dzrékpo,TGO,Maritime,Vo,6.47,1.57
+12078,Alédjo,TGO,Kara,Assoli,9.28,1.1
+12079,Soudou,TGO,Kara,Kozah,9.46,1.33
+12194,Assoukoko,TGO,Centrale,Blitta,8,0.66
+12239,Attitogon,TGO,Maritime,Lacs,6.42,1.66
+12240,Aleheride,TGO,Centrale,Tchaoudjo,9.21,1.2
