@@ -19,10 +19,7 @@ with st.sidebar:
                              help="Default: ARR credits 2023, Ecosystem Marketplace")
     discount_rate = st.slider("Discount rate", 0.03, 0.20, DISCOUNT_RATE, 0.01, format="%.2f")
     horizon = st.slider("Investment horizon (years)", 10, 40, HORIZON_YRS, 5)
-    low_t, high_t = st.slider("Tier thresholds (low ≤ / high ≥)", 0.0, 1.0, (LOW_T, HIGH_T), 0.05,
-                              help="Applied to P, the best model's probability that a site is high potential. Left "
-                                   "handle: low potential if P ≤ it. Right handle: high potential if P ≥ it. Sites "
-                                   "in between are uncertain and left out.")
+low_t, high_t = LOW_T, HIGH_T
 
 df = load_points()
 ha_per_site = AOI_KM2 * 100 / len(df)                     # each uniformly sampled site = equal share of the region
@@ -86,8 +83,6 @@ with st.container(border=True):
     st.altair_chart((bars + rules + text).properties(height=300),
                     alt="Histogram of the model probability P across all investable sites, coloured by tier, "
                         "with the low and high thresholds as dashed lines")
-    st.caption("Move the **Tier thresholds (low ≤ / high ≥)** slider in the sidebar: the dashed lines move, the bars change "
-               "colour, and every card, chart and map below is recomputed for the new tiers.")
 
 # ---- one card per potential level: land uses side by side ----
 USE_DOT = {"Forest restoration": ":green[●]", "Agriculture": ":orange[●]"}
