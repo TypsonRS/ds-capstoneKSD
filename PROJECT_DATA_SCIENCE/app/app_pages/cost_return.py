@@ -5,8 +5,10 @@ import pydeck as pdk
 import streamlit as st
 
 from common import AOI_KM2, BEST_MODEL, HIGH_T, LOW_T, hex_to_rgb, load_countries, load_points
-from costs import CARBON_PRICE, DISCOUNT_RATE, HORIZON_YRS, REFERENCES, SCEN_COLORS, cost_return
+from costs import (CARBON_PRICE, DISCOUNT_RATE, FOREST_INCOME_HA_YR, FOREST_INCOME_HA_YR_MAX, FUELWOOD_START_YR, HORIZON_YRS, REFERENCES,
+                   SCEN_COLORS, SHEA_START_YR, cost_return)
 
+discount_rate = DISCOUNT_RATE
 st.title("Cost and return", anchor=False)
 st.caption(f"Cost and expected return per hectare of two general land uses, for the **high** and **low** potential "
            f"sites of the best model (**{BEST_MODEL}**). Costs and revenues are present values in USD; the expected "
@@ -15,18 +17,41 @@ st.caption(f"Cost and expected return per hectare of two general land uses, for 
 
 with st.sidebar:
     st.header("Investor settings", anchor=False)
-    carbon_price = st.slider("Carbon price (USD/tCO2e)", 0.0, 50.0, CARBON_PRICE, 0.5,
-                             help="Default: ARR credits 2023, Ecosystem Marketplace")
-    discount_rate = st.slider("Discount rate", 0.03, 0.20, DISCOUNT_RATE, 0.01, format="%.2f")
+    forest_income_ha_yr = st.slider(
+        "Forest income (USD/ha/yr)", 0, 300, round(FOREST_INCOME_HA_YR), 1, key="cr_forest_income",
+        help=f"Money one hectare of restored forest earns per year in full production: carbon credits + shea "
+             f"kernels + fuelwood, minus the carbon the burnt wood no longer earns.\n\n"
+             f"- **{FOREST_INCOME_HA_YR:.0f}** (default) = cited mean values: carbon at {CARBON_PRICE} USD/t "
+             f"(2023 average) from year 4, fuelwood (FAO 1983, Central Togo prices) from year "
+             f"{FUELWOOD_START_YR}, shea (FAO & Global Shea Alliance 2020) from year {SHEA_START_YR}.\n"
+             f"- **{FOREST_INCOME_HA_YR_MAX:.0f}** = top of the cited ranges (more fuelwood at a higher price, "
+             "upgraded shea yields).\n"
+             f"- **Above {FOREST_INCOME_HA_YR_MAX:.0f}** = only with a carbon price above the 2023 average, which "
+             "the sources do not give.\n\n"
+             "Moving the slider scales all incomes together; each keeps its start year. Sources: **Inputs and "
+             "sources** below.")
     horizon = st.slider("Investment horizon (years)", 10, 40, HORIZON_YRS, 5)
-low_t, high_t = LOW_T, HIGH_T
+    low_t, high_t = st.slider("P tier thresholds (low ≤ / high ≥)", 0.0, 1.0, (LOW_T, HIGH_T), 0.05,
+                              key="cr_tiers", help="P = best model's probability of high potential. Sites with "
+                                                   "P ≤ low are low potential, P ≥ high are high potential, "
+                                                   "anything in between is uncertain.")
+    p_min, p_max = st.slider("Probability of high potential (P)", 0.0, 1.0, (0.0, 1.0), 0.05, key="cr_p_range",
+                             help="Only sites whose P lies in this range are costed. Narrow it to compare how "
+                                  "cost and return change between low-P and high-P sites.")
 
 df = load_points()
 ha_per_site = AOI_KM2 * 100 / len(df)                     # each uniformly sampled site = equal share of the region
 keep = (df[["protected", "water", "built_up"]].fillna(0) == 0).all(axis=1) & df["opportunity"].notna()
-inv = df.loc[keep]
+inv = df.loc[keep & df["opportunity"].between(p_min, p_max)]
+if inv.empty:
+    st.warning(f"No investable site with {p_min:.2f} ≤ P ≤ {p_max:.2f}. Widen the P range in the sidebar.",
+               icon=":material/warning:")
+    st.stop()
+if (p_min, p_max) != (0.0, 1.0):
+    st.info(f"Showing only sites with {p_min:.2f} ≤ P ≤ {p_max:.2f} ({len(inv):,} sites).",
+            icon=":material/filter_alt:")
 inv = inv.join(cost_return(inv[["opportunity", "slope", "ph", "fire_freq", "dist_to_road_m",
-                                "dist_to_settlement_m"]], carbon_price, discount_rate, horizon))
+                                "dist_to_settlement_m"]], forest_income_ha_yr, discount_rate, horizon))
 
 LEVELS = {"High potential": f"P ≥ {high_t:.2f}", "Low potential": f"P ≤ {low_t:.2f}"}
 inv["level"] = np.select([inv["opportunity"] >= high_t, inv["opportunity"] <= low_t], list(LEVELS), "Uncertain")
@@ -34,6 +59,7 @@ USES = {"Forest restoration": "forest", "Agriculture": "agri"}
 LOSS = "Not profitable"
 EXCLUDED = "Excluded"
 MAP_COLORS = {**SCEN_COLORS, LOSS: "#8c8c8c", EXCLUDED: "#4a90d9"}
+
 HELP = {
     "Cost": f"Present value of all costs over {horizon} years: establishment, maintenance, access, erosion "
             f"control, fire treatment and liming, discounted at {discount_rate:.0%} per year.",
@@ -99,7 +125,8 @@ for col, (level, rule) in zip(st.columns(2), LEVELS.items()):
     with col, st.container(border=True, height="stretch"):
         st.subheader(f"{level} · {rule}", anchor=False)
         if sub.empty:
-            st.info("No site in this range. Move the tier thresholds in the sidebar.", icon=":material/info:")
+            st.info("**No investable sites** in this range. Move the tier thresholds or the P range in the sidebar.",
+                    icon=":material/info:")
             continue
         st.caption(f"{len(sub):,} investable sites · {len(sub) * ha_per_site:,.0f} ha · "
                    f"mean P {sub['opportunity'].mean():.2f}")
@@ -224,7 +251,10 @@ with st.container(border=True):
 
 with st.expander("Inputs and sources", icon=":material/menu_book:"):
     st.dataframe(REFERENCES, hide_index=True, alt="Reference values used in the cost model")
-    st.caption("Forest restoration earns carbon credits only (no species-specific products). Agriculture uses a "
-               "generic cereal benchmark. Walking time to the nearest settlement and carrying loads from the "
-               "nearest road are paid every year for agriculture and once for forest restoration. Files and page "
-               "numbers: references/cost_return_sources/README.md.")
+    st.caption("Forest restoration earns carbon credits, shea kernels and sustainable fuelwood together (the burnt "
+               "fuelwood is deducted from the carbon credits). The values below set the default of **Forest income** "
+               "in the sidebar; the slider scales all of them together. Non-market ecosystem services "
+               "(water, soil, biodiversity) are real but not paid to the investor, so they are not in the NPV. "
+               "Agriculture uses a generic cereal benchmark. Walking time to the nearest settlement and carrying "
+               "loads from the nearest road are paid every year for agriculture and once for forest restoration. "
+               "Files and page numbers: references/cost_return_sources/README.md.")

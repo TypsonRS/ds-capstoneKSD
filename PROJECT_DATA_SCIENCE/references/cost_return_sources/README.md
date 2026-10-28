@@ -17,6 +17,21 @@ Downloaded 2026-10-28.
 | 09_Agridigitale_filiere_mais.html | https://agridigitale.com/article/comment_rendre_la_filire_mas_plus_comptitive_ | Support for `FARMGATE_SHARE` (producer price <= 180 FCFA/kg) |
 | 10_Hounkpati_2024_Frontiers_FLR_Central_Togo.pdf / .html | https://www.frontiersin.org/journals/sustainable-food-systems/articles/10.3389/fsufs.2024.1425797/full | Context: agroforestry return 417,000 FCFA/ha/yr in Central Togo (not used in the model) |
 
+## Forest products besides carbon (shea, fuelwood)
+
+| File | Source | Used for |
+|---|---|---|
+| 18_FAO_GSA_2020_Shea_value_chain_West_Africa.pdf | Bockel, L., Veyrier, M., Gopal, P., Adu, A. and Ouedraogo, A. 2020. Shea value chain as a key pro-poor carbon-fixing engine in West Africa. Accra, FAO and Global Shea Alliance. https://globalshea.com/gsamain/storage/img/news/docs/Shea%20value%20chain%20-%20FAO%20GSA%20.pdf | `SHEA_KERNEL_KG_HA` = 60 (Table 4, improved parklands, 0.060 t/ha), `SHEA_USD_KG` = 23.96 USD per 85-kg bag (Table 6), `SHEA_START_YR` = 15 (p. 3, citing Höfer 2009) |
+| 19_Kaina_2020_bois_energie_Region_Centrale_Togo.pdf | Kaina, A., Dourma, M., Diwediga, B., Folega, F., Wala, K. and Akpagana, K. 2020. Production du bois énergie dans la Région Centrale du Togo : prix et quantités. Rev. Sc. Env. Univ. Lomé 18. https://bdd.pseau.org/outils/ouvrages/rev_sc_env_univ_lome_production_du_bois_energie_dans_la_region_centrale_du_togo_prix_et_quantites_2020.pdf | `FUELWOOD_XOF_KG` = 23.6 FCFA/kg (section 2.1 and discussion, range 20-28), `FUELWOOD_T_M3` = 696,256.94 t / 838,863.78 m3 (Table of annual production) |
+| 20_FAO_fuelwood_Africa_south_of_Sahara_x5329e05.htm | de Montalembert, M.R. and Clement, J. 1983. Fuelwood supplies in the developing countries. FAO Forestry Paper 42, ch. IV. https://www.fao.org/4/x5329e/x5329e05.htm | `FUELWOOD_M3_HA` = 1.0 (section 4.2.2(a): open forest and wooded savanna 0.8-1.2 m3/ha/yr) |
+| 21_FAO_Boffa_1999_Agroforestry_parklands_ch7.htm | Boffa, J.-M. 1999. Agroforestry parklands in sub-Saharan Africa. FAO Conservation Guide 34, ch. VII. https://www.fao.org/4/x3940e/X3940E10.htm | Cross-check: shea kernels 52 kg/ha and 2.4 kg/tree (Boffa et al. 1996a); parkland products 5,000-8,000 FCFA/ha/yr in the 1990s (not used in the model) |
+
+`WOOD_DENSITY` = 0.53 t d.m./m3 (*Daniellia oliveri*, a Guinea-savanna species) comes from file 01b, Table 4.13. The harvested wood is converted to CO2 with `CARBON_FRACTION` (file 01b, Table 4.3) and deducted from the carbon credits. `FUELWOOD_START_YR` = 6 and selling fuelwood at `FARMGATE_SHARE` of the market price are assumptions.
+
+Top of the cited ranges (`FOREST_INCOME_HA_YR_MAX` ≈ 157 USD/ha/yr, vs. 142 at the mean values): `SHEA_KERNEL_KG_HA_MAX` = 84 (file 18, Table 4, upgraded value chain 2032), `FUELWOOD_M3_HA_MAX` = 1.2 (file 20), `FUELWOOD_XOF_KG_MAX` = 28 (file 19). The carbon price stays at the 2023 average because file 02 gives no maximum.
+
+Non-market ecosystem services (water regulation, erosion control, biodiversity) are not included: they are not paid to the investor, and no FAO per-hectare value for the region was found.
+
 ## Site extras (distance, slope, fire, soil acidity)
 
 | File | Source | Used for |
