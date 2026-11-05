@@ -1,6 +1,55 @@
+# AgroRestore AI theme: white (light) and black (dark), forest green accent.
+# Both modes are defined, so the Light / Dark toggle in the app's settings menu is available.
+
 [theme]
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+baseRadius = "8px"
+buttonRadius = "8px"
+showWidgetBorder = true
+showSidebarBorder = true
+
+# ---------- WHITE ----------
+[theme.light]
 primaryColor = "#1a9850"
-font = "sans-serif"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f6f3"
+textColor = "#111111"
+linkColor = "#157a40"
+borderColor = "#dcdcdc"
+greenColor = "#1a9850"
+orangeColor = "#e07b24"
+redColor = "#d73027"
+yellowColor = "#e3b23c"
+grayColor = "#6b6b6b"
+chartCategoricalColors = ["#1a9850", "#fdae61", "#d73027", "#4a90d9", "#8c6d3f", "#8c8c8c"]
+dataframeHeaderBackgroundColor = "#f3f6f3"
+dataframeBorderColor = "#dcdcdc"
+
+[theme.light.sidebar]
+backgroundColor = "#f7f9f7"
+secondaryBackgroundColor = "#ffffff"
+
+# ---------- BLACK ----------
+[theme.dark]
+primaryColor = "#3fcf7f"
+backgroundColor = "#000000"
+secondaryBackgroundColor = "#161616"
+textColor = "#f2f2f2"
+linkColor = "#6fdc9c"
+borderColor = "#2e2e2e"
+greenColor = "#3fcf7f"
+orangeColor = "#f2a65a"
+redColor = "#f0624d"
+yellowColor = "#f0c75e"
+grayColor = "#9c9c9c"
+chartCategoricalColors = ["#3fcf7f", "#fdae61", "#f0624d", "#6fb2ff", "#c29a63", "#9c9c9c"]
+dataframeHeaderBackgroundColor = "#161616"
+dataframeBorderColor = "#2e2e2e"
+
+[theme.dark.sidebar]
+backgroundColor = "#0a0a0a"
+secondaryBackgroundColor = "#161616"
 
 [server]
 runOnSave = true
