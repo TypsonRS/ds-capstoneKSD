@@ -262,15 +262,18 @@ full run takes most of a day, mostly Earth Engine downloads and model tuning (th
 search alone took about 9 hours). Patches, yearly statistics and the OSM extract are cached, so
 later runs are faster.
 
-**5. App.** From `PROJECT_DATA_SCIENCE`:
+**5. App.** Double-click `PROJECT_DATA_SCIENCE/run_app.bat`, or run it from a terminal. It opens
+a console window that runs the server; close that window to stop the app. Then open
+http://localhost:8501. The last cell of the notebook starts the same script in its own window,
+so the app keeps running after the notebook is closed. To start it by hand instead, from
+`PROJECT_DATA_SCIENCE`:
 
 ```bash
 venv\Scripts\python.exe -m streamlit run app\streamlit_app.py
 ```
 
-Then open http://localhost:8501. Call Streamlit through `python -m`, because the
-`venv\Scripts\streamlit.exe` launcher can break if the folder is moved. The last cell of the
-notebook starts the app in the background too.
+Call Streamlit through `python -m`, because the `venv\Scripts\streamlit.exe` launcher can break
+if the folder is moved.
 
 ## Project structure
 

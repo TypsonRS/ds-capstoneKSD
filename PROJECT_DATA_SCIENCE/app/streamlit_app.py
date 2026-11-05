@@ -1,7 +1,7 @@
 """AgroRestore AI - Streamlit web app.
 
-Run from PROJECT_DATA_SCIENCE:
-    venv\\Scripts\\streamlit run app\\streamlit_app.py
+Run from PROJECT_DATA_SCIENCE (or double-click run_app.bat):
+    venv\\Scripts\\python.exe -m streamlit run app\\streamlit_app.py
 """
 
 import streamlit as st
