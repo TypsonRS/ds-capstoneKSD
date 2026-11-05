@@ -141,3 +141,11 @@ images/*
 .claude/
 CLAUDE.md
 .dual-graph/
+
+# AgroRestore AI: large generated files, kept locally and rebuilt by the notebook
+# (GitHub rejects files over 100 MB)
+*.osm.pbf
+PROJECT_DATA_SCIENCE/data/DATA_PROCESSED/*.pkl
+PROJECT_DATA_SCIENCE/data/DATA_PROCESSED/patches/
+PROJECT_DATA_SCIENCE/outputs/tier_map_interactive.html
+~$*
