@@ -227,7 +227,8 @@ the values without a reference are marked `ASSUMPTION` in the code.
 
 ## Web app
 
-A Streamlit app in [PROJECT_DATA_SCIENCE/app/](PROJECT_DATA_SCIENCE/app/) presents the results:
+A Streamlit app in [PROJECT_DATA_SCIENCE/app/](PROJECT_DATA_SCIENCE/app/) presents the results.
+It runs locally at **https://agrorestoreai** (see *Running it*, step 5) and has seven pages:
 
 | Page | What it shows |
 |---|---|
@@ -262,24 +263,54 @@ full run takes most of a day, mostly Earth Engine downloads and model tuning (th
 search alone took about 9 hours). Patches, yearly statistics and the OSM extract are cached, so
 later runs are faster.
 
-**5. App.** Double-click `PROJECT_DATA_SCIENCE/run_app.bat`, or run it from a terminal. It opens
-a console window that runs the server; close that window to stop the app. Then open
-http://localhost:8501. The last cell of the notebook starts the same script in its own window,
-so the app keeps running after the notebook is closed. To start it by hand instead, from
-`PROJECT_DATA_SCIENCE`:
+**5. App.** Double-click `run_app.bat` (there is one at the repository root and one in
+`PROJECT_DATA_SCIENCE`; both do the same), or run it from a PowerShell terminal in either folder:
 
-```bash
-venv\Scripts\python.exe -m streamlit run app\streamlit_app.py
+```powershell
+.\run_app.bat
 ```
 
-Call Streamlit through `python -m`, because the `venv\Scripts\streamlit.exe` launcher can break
-if the folder is moved.
+The server runs in that window and prints its log there. Open **https://agrorestoreai** (type
+the `https://` part, otherwise the browser searches the web for the word). Press Ctrl+C in the
+window, or close it, to stop the app. The last cell of the notebook starts the same script in
+its own minimised window, so the app keeps running after the notebook is closed. If the port is
+already in use, the app is already running: just open the URL.
+
+The app listens on port 443 (the HTTPS default, so no port in the address) with a self-signed
+certificate that `app/make_cert.py` creates in `certs/` (not committed). Two one-time steps make
+the address work on a computer:
+
+1. **`setup_hostname.bat`**, right-click, *Run as administrator*. It adds the line
+   `127.0.0.1 agrorestoreai` to the Windows hosts file, so the name points at your own machine.
+   Without it, the app is still reachable at https://localhost.
+2. **`trust_cert.bat`**, double-click and click *Yes* in the Windows dialog. It adds the
+   certificate to your user's "Trusted Root Certification Authorities" store, so the browser
+   stops warning that the certificate is self-signed. Restart the browser afterwards. Without
+   it, click *Advanced*, then *Proceed*, on the warning page. Undo with
+   `certutil -delstore -user Root agrorestoreai`.
+
+Both scripts exist at the repository root and in `PROJECT_DATA_SCIENCE`. To start the app by
+hand instead, from `PROJECT_DATA_SCIENCE`:
+
+```bash
+venv\Scripts\python.exe app\make_cert.py
+venv\Scripts\python.exe -m streamlit run app\streamlit_app.py --server.port 443 --server.sslCertFile certs\localhost.crt --server.sslKeyFile certs\localhost.key
+```
+
+Leave out the port and SSL options to serve plain http://localhost:8501. Call Streamlit through
+`python -m`, because the `venv\Scripts\streamlit.exe` launcher can break if the folder is moved.
 
 ## Project structure
 
 ```
+run_app.bat                      shortcut: starts the web app from the repository root
+setup_hostname.bat               shortcut: hosts-file entry for https://agrorestoreai (run as administrator)
+trust_cert.bat                   shortcut: trusts the HTTPS certificate, from the repository root
 PROJECT_DATA_SCIENCE/
 ├── AgroRestoreAI.ipynb          the full pipeline
+├── run_app.bat                  starts the web app at https://agrorestoreai in its own window
+├── setup_hostname.bat           one-time, as administrator: points "agrorestoreai" at this computer
+├── trust_cert.bat               one-time: makes Windows trust certs/localhost.crt (no more browser warning)
 ├── requirements.txt
 ├── results_baseline_no_tune.csv
 ├── app/                         Streamlit web app
@@ -287,7 +318,9 @@ PROJECT_DATA_SCIENCE/
 │   ├── common.py                paths, settings, loaders, map helpers
 │   ├── costs.py                 cost and return model with its reference values
 │   ├── features.py              Earth Engine features for new regions (copy of the notebook's)
+│   ├── make_cert.py             creates the self-signed certificate for HTTPS
 │   └── app_pages/               one file per page
+├── certs/                       localhost.crt and localhost.key (created on first run, not committed)
 ├── data/
 │   ├── DATA_RAW/                raw downloads
 │   ├── DATA_PROCESSED/          features, yearly series, patches, models, predictions, OSM cache, site ranking
