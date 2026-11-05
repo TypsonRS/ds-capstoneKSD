@@ -50,23 +50,30 @@ robust priority and avoid zones.
 **What drives the predictions:** rainy-season soil moisture is by far the most important
 condition for Random Forest and XGBoost, followed by NDVI resilience and variability, elevation
 and minimum temperature. Distance to settlements and roads ranks mid-table. The CNN relies most
-on soil organic carbon, soil moisture and elevation.
+on soil organic carbon, soil moisture and elevation. Logistic Regression leans on NDVI
+resilience and the temperature layers instead, and its coefficients show that, all else equal,
+sites with more variable and more resilient vegetation are more likely to regreen.
 
-**Cost and return** (high and low-potential sites of Random Forest, protected areas, water and
-built-up land excluded; USD per hectare, present value over 20 years at a 10% discount rate):
+**Cost and return** (141 sites of 10 km, protected areas, water and built-up land excluded;
+USD per hectare, present value over 20 years at a 10% discount rate; the Random Forest score
+sets the probability of success):
 
-| Potential | Land use | Cost | Expected return | NPV | ROI | Profitable sites |
-|---|---|---|---|---|---|---|
-| High | Agriculture | 2,237 | 2,486 | **+249** | +11% | 70% |
-| High | Forest restoration | 991 | 621 | −370 | −37% | 0% |
-| Low | Agriculture | 2,231 | 360 | −1,871 | −84% | 0% |
-| Low | Forest restoration | 1,015 | 88 | −926 | −91% | 0% |
+| Site | P(high) | Area (ha) | Agriculture: cost | return | NPV | ROI | Forest: cost | return | NPV | ROI |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Rank 1 | 0.93 | 9,450 | 1,806 | 2,702 | **+896** | +50% | 931 | 679 | −252 | −27% |
+| Rank 2 | 0.85 | 8,257 | 1,762 | 2,479 | **+717** | +41% | 933 | 619 | −314 | −34% |
+| Rank 3 | 0.83 | 928 | 1,841 | 2,433 | **+593** | +32% | 937 | 614 | −323 | −35% |
+| Rank 4 | 0.76 | 3,313 | 1,701 | 2,239 | **+537** | +32% | 906 | 569 | −337 | −37% |
+| Rank 5 | 0.87 | 9,410 | 1,915 | 2,502 | **+587** | +31% | 975 | 614 | −362 | −37% |
+| Mean of all 141 sites | 0.49 | 7,308 | 2,254 | 1,419 | −835 | −35% | 1,011 | 352 | −659 | −64% |
 
-Only high-potential land pays back, and only for agriculture. Forest restoration earns about
-142 USD/ha/yr in full production (carbon credits, fuelwood and shea kernels); at today's average
-carbon price of 15.6 USD/t that does not cover its costs. With fuelwood and shea fixed, forest
-restoration on high-potential land breaks even at a carbon price of about **27 USD/t**, and at
-40 USD/t it becomes the better land use on 95% of high-potential sites (ROI +43%).
+Agriculture is the better land use on every site, and it pays back on 25 of the 141: those
+sites all have a probability of success of at least 0.60 and together cover about 203,000 ha,
+with a total cost of 406 million USD and a total NPV of 52 million USD. Forest restoration earns
+about 142 USD/ha/yr in full production (carbon credits, fuelwood and shea kernels); at today's
+average carbon price of 15.6 USD/t that does not cover its costs on any site, not even on the
+best one (ROI −27% at P(high) = 0.93). The result is very sensitive to the carbon price; the
+app's Cost and return page has a slider to explore it.
 
 ## How the notebook works
 
@@ -96,7 +103,7 @@ All settings live at the top of the notebook:
 
 | Group | Layers | Source |
 |---|---|---|
-| Climate | mean daily rainfall; mean, min and max temperature; soil moisture (Jul-Oct) | CHIRPS, TerraClimate |
+| Climate | mean daily rainfall; mean, min and max temperature (2006-2024); rainy-season soil moisture (Jul-Oct, 1991-2024) | CHIRPS, TerraClimate |
 | Soil | organic carbon and pH, 0-20 cm | iSDAsoil |
 | Terrain | elevation, slope | SRTM |
 | Land cover | built-up, water | ESA WorldCover 2021 |
@@ -118,8 +125,12 @@ Points missing a critical layer are dropped and the table is saved as
 ### 5. Exploratory data analysis
 
 - Yearly time series of every climate and vegetation layer, with the spatial 10th-90th
-  percentile band and the trend per decade (`01a_time_varying_features_by_year.png`)
-- Distributions of the static layers (`01b_static_feature_distributions.png`)
+  percentile band and the trend per decade (`01a_time_varying_features_by_year.png`). The
+  yearly statistics are fetched from Earth Engine one year at a time and cached in
+  `timeseries_all_features.csv`, so the cell can be resumed. Burned area is shown on a log
+  scale: it ranges from about 2 km² to 2,366 km² per year and has risen sharply.
+- Distributions of the static layers (`01b_static_feature_distributions.png`) and summary
+  tables of the yearly and static values (`feature_means_summary.csv`)
 - Correlation matrix and pair plots (`02_correlation_matrix.png`, `02b_pairplot_features.png`).
   The temperature layers are strongly correlated with each other and with elevation
   (|ρ| 0.85-0.97), and soil carbon with NDVI mean (ρ 0.84).
@@ -140,15 +151,19 @@ Points missing a critical layer are dropped and the table is saved as
 4. **Spatial split**: the region is cut into 10 km blocks. 30% of the blocks are held out for the
    final test (42,643 training points in 114 blocks, 17,305 test points in 49 blocks), so the
    models are tested on new places, not on neighbours of training points.
-5. **Models**, all as scikit-learn pipelines (median imputation, then power transform):
+5. **Models**, all as scikit-learn pipelines (median imputation, then power transform; the
+   pipeline diagrams are saved to `reports/FIGURES/pipeline_models.html`):
    - Random Forest and Logistic Regression with balanced class weights
    - XGBoost with `scale_pos_weight`
    - a 2D CNN in PyTorch: two convolution blocks plus a dense head, with rotation and flip
-     augmentation and early stopping on held-out blocks. It is wrapped as a scikit-learn
-     classifier, so it is tuned and evaluated exactly like the others.
+     augmentation and early stopping on 15% of the training blocks. It is wrapped as a
+     scikit-learn classifier, so it is tuned and evaluated exactly like the others.
 6. **Baseline**: every model with default hyperparameters (`results_baseline_no_tune.csv`)
 7. **Tuning**: randomized search with `GroupKFold(5)` on the training blocks only, scored on
-   F1 macro (20 configurations per tabular model, 6 for the CNN)
+   F1 macro (20 configurations per tabular model, 6 for the CNN). Selected settings: Random
+   Forest with 300 fully grown trees and half the features per split; XGBoost with 400 trees
+   of depth 8 and learning rate 0.03; Logistic Regression with C = 100; CNN with 16 filters,
+   dropout 0.4 and learning rate 0.001. Tuning the Random Forest alone took about 9 hours.
 
 ### 7. Evaluation and interpretation
 
@@ -165,8 +180,11 @@ Points missing a critical layer are dropped and the table is saved as
 - Maps: one per model, the best model as probability, tiers and hexagon averages, model agreement,
   and labels, spatial split and errors (`07a`-`07d_*.png`)
 - `predictions.gpkg` for QGIS, and an interactive folium map
-  (`reports/FIGURES/interactive/interactive_map.html`) with all layers, tiers, hexagons, country
-  borders and click-for-details
+  (`reports/FIGURES/interactive/interactive_map.html`, about 10 MB) with one probability layer
+  per model, the tier layer, 1,202 hexagons with the Random Forest average, the study-area
+  outline, country borders (from the US LSIB dataset, cached in `data/countries_near_aoi.shp`),
+  three basemaps (Esri streets and satellite, OpenTopoMap) and click-for-details with the
+  scores of every model
 
 ### 9. Cost and return
 
@@ -175,7 +193,7 @@ point ≈ 13 ha) is costed for two general land uses, with no specific crop or t
 
 | | Forest restoration | Agriculture |
 |---|---|---|
-| **Revenue if successful** | Carbon credits: 8.9 tCO₂e/ha/yr (IPCC 2019 growth for young African dry forest), 80% sold at 15.6 USD/t, from year 4 | Generic cereal benchmark: 1,198 kg/ha (World Bank/FAO) at 75% of the WFP retail maize price |
+| **Revenue if successful** | Carbon credits: 8.9 tCO₂e/ha/yr (IPCC 2019 growth for young African dry forest), 80% sold at 15.6 USD/t, from year 4 (112 USD/ha/yr); fuelwood: 1 m³/ha/yr at the Centrale Region price, from year 6 (24 USD/ha/yr, with the burnt carbon deducted from the credits, −11 USD/ha/yr); shea kernels: 60 kg/ha from year 15 (17 USD/ha/yr). Total in full production: 142 USD/ha/yr | Generic cereal benchmark: 1,198 kg/ha (World Bank/FAO) at 75% of the WFP retail maize price, 346 USD/ha/yr |
 | **Fixed costs** | Establishment 680 USD/ha (FAO & AUDA-NEPAD), maintenance 50 USD/ha/yr in years 1-5 | Land clearing once, production cost 96,700 FCFA/ha every year |
 | **Site extras** | Walking from the nearest settlement and carrying seedlings from the nearest road (once); fire fuel treatment × fire frequency | Walking and carrying the harvest every year; stone bunds on slopes > 2°; lime on soils with pH < 5.5 |
 | **Fire loss** | 60% of the return at fire frequency 1 | 20% |
@@ -187,16 +205,22 @@ point ≈ 13 ha) is costed for two general land uses, with no specific crop or t
   pays back its costs and beats the discount rate.
 - **ROI** = NPV ÷ cost, the net gain per dollar invested.
 
+Over the 20-year horizon the present value of the revenue, if the land use succeeds, is
+755 USD/ha for forest restoration and 2,945 USD/ha for agriculture. Averaged over all investable
+points, both land uses lose money (mean NPV −638 and −771 USD/ha), because the average site has
+only a middling probability of success.
+
 The points are then grouped into the 10 km blocks ("sites", at least 500 ha of investable land):
 141 sites, each with both land uses, the better one by ROI, and the total cost and NPV. They are
-ranked by the ROI of their better use. Outputs: `site_ranking_cost_return.csv` and
+ranked by the ROI of their better use. Agriculture is the better use on all 141 sites, and
+25 of them are profitable. Outputs: `site_ranking_cost_return.csv` and
 `cost_return_ranking.png` (map of the best use per site, cost against expected return, top 15
 sites).
 
-The notebook counts carbon credits as the only forest revenue. The **Cost and return** page of
-the app ([app/costs.py](PROJECT_DATA_SCIENCE/app/costs.py)) extends it with fuelwood (from year 6;
-the burnt wood is deducted from the carbon credits) and shea kernels (from year 15), about
-142 USD/ha/yr in total. The results table above comes from the app version. Every input value,
+The site table in the Results section above is read from `site_ranking_cost_return.csv`. The
+**Cost and return** page of the app ([app/costs.py](PROJECT_DATA_SCIENCE/app/costs.py)) uses the
+same inputs and income lines as the notebook, adds sliders for the forest income, horizon and
+tier thresholds, and splits the results by potential tier instead of by site. Every input value,
 its source file and page number are listed in
 [references/cost_return_sources/README.md](PROJECT_DATA_SCIENCE/references/cost_return_sources/README.md);
 the values without a reference are marked `ASSUMPTION` in the code.
@@ -234,8 +258,9 @@ venv\Scripts\python.exe -m pip install -r requirements.txt
 roads and settlements come from the cached `osm_roads_settlements_aoi.gpkg`.
 
 **4. Notebook.** Open `AgroRestoreAI.ipynb`, select the `venv` kernel, and run all cells. The first
-full run takes a few hours, mostly Earth Engine downloads and model tuning. Patches and yearly
-statistics are cached, so later runs are faster.
+full run takes most of a day, mostly Earth Engine downloads and model tuning (the Random Forest
+search alone took about 9 hours). Patches, yearly statistics and the OSM extract are cached, so
+later runs are faster.
 
 **5. App.** From `PROJECT_DATA_SCIENCE`:
 
@@ -262,10 +287,12 @@ PROJECT_DATA_SCIENCE/
 │   └── app_pages/               one file per page
 ├── data/
 │   ├── DATA_RAW/                raw downloads
-│   └── DATA_PROCESSED/          features, patches, models, predictions, OSM cache, site ranking
+│   ├── DATA_PROCESSED/          features, yearly series, patches, models, predictions, OSM cache, site ranking
+│   └── countries_near_aoi.shp   country borders for the maps (downloaded once from Earth Engine)
+├── presentation/                Demo Day slides
 ├── references/
 │   └── cost_return_sources/     source documents for every cost and return input, with a README
-└── reports/FIGURES/             all figures and the interactive map
+└── reports/FIGURES/             all figures, the pipeline diagrams and the interactive map
 ```
 
 The root folders (`src/`, `notebooks/`, `tests/`, `Makefile`, `pyproject.toml`) come from the
