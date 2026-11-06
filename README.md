@@ -270,11 +270,16 @@ later runs are faster.
 .\run_app.bat
 ```
 
-The server runs in that window and prints its log there. Open **https://agrorestoreai** (type
-the `https://` part, otherwise the browser searches the web for the word). Press Ctrl+C in the
-window, or close it, to stop the app. The last cell of the notebook starts the same script in
-its own minimised window, so the app keeps running after the notebook is closed. If the port is
-already in use, the app is already running: just open the URL.
+The script opens the server in a window of its own, "AgroRestore AI app", minimised in the
+taskbar, and prints its log there. That window belongs to nobody but Windows, so the app keeps
+running after the terminal, the notebook or VS Code is closed. Open **https://agrorestoreai**
+(type the `https://` part, otherwise the browser searches the web for the word). To stop the
+app, close that window. Running the script while the app is already up just says so. The last
+cell of the notebook runs the same script.
+
+To have the app up whenever you are logged in to Windows, without VS Code or a terminal,
+double-click `install_autostart.bat` once. It puts a small script in your Startup folder (no
+administrator rights needed) and starts the app right away. `remove_autostart.bat` undoes it.
 
 The app listens on port 443 (the HTTPS default, so no port in the address) with a self-signed
 certificate that `app/make_cert.py` creates in `certs/` (not committed). Two one-time steps make
@@ -304,11 +309,15 @@ Leave out the port and SSL options to serve plain http://localhost:8501. Call St
 
 ```
 run_app.bat                      shortcut: starts the web app from the repository root
+install_autostart.bat            shortcut: starts the web app at every Windows logon
+remove_autostart.bat             shortcut: undoes install_autostart.bat
 setup_hostname.bat               shortcut: hosts-file entry for https://agrorestoreai (run as administrator)
 trust_cert.bat                   shortcut: trusts the HTTPS certificate, from the repository root
 PROJECT_DATA_SCIENCE/
 ├── AgroRestoreAI.ipynb          the full pipeline
-├── run_app.bat                  starts the web app at https://agrorestoreai in its own window
+├── run_app.bat                  starts the web app at https://agrorestoreai in its own window (survives closing VS Code)
+├── install_autostart.bat        optional: starts the web app at every Windows logon (Startup folder, no admin)
+├── remove_autostart.bat         undoes install_autostart.bat
 ├── setup_hostname.bat           one-time, as administrator: points "agrorestoreai" at this computer
 ├── trust_cert.bat               one-time: makes Windows trust certs/localhost.crt (no more browser warning)
 ├── requirements.txt
