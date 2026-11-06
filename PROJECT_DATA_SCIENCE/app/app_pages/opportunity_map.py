@@ -3,7 +3,7 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
-from common import (AOI_KM2, BEST_MODEL, FEATURE_INFO, MODEL_COLS, TIER_COLORS, TIER_NAMES, hex_to_rgb,
+from common import (AOI_KM2, BEST_MODEL, FEATURE_INFO, MODEL_COLS, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, dot, hex_to_rgb,
                     hexbin_mean, load_countries, load_points, rdylgn, surface_png)
 
 st.title("Opportunity map", anchor=False)
@@ -42,19 +42,18 @@ with st.container(horizontal=True):
         n = int((m["tier"] == k).sum())
         st.metric(TIER_NAMES[k], f"{n * cell_km2:,.0f} km²", f"{n / len(m):.0%} of shown sites",
                   delta_color="off", delta_arrow="off", border=True)
-    st.metric("Mean score", f"{m['score'].mean():.2f}", border=True)
 
 # ---- colours per view ----
 if view == "Tiers":
     m[["r", "g", "b"]] = np.array([hex_to_rgb(c) for c in TIER_COLORS])[m["tier"]]
-    legend = " · ".join(f":{c}[●] {n}" for c, n in zip(["red", "orange", "green"], TIER_NAMES))
+    legend = " &nbsp;·&nbsp; ".join(f"{dot(c)} {n}" for c, n in zip(TIER_COLORS, TIER_NAMES))
 elif view == "Model agreement":
     n_models = len(MODEL_COLS)
     m[["r", "g", "b"]] = rdylgn(m["votes"] / n_models)
-    legend = f"Number of models predicting *high* (≥ 0.5): :red[● 0] → :green[● {n_models}]"
+    legend = f"Number of models predicting *high* (≥ 0.5): {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[1])} {n_models}"
 else:
     m[["r", "g", "b"]] = rdylgn(m["score"])
-    legend = "Probability of high potential: :red[● 0] → :orange[● 0.5] → :green[● 1]"
+    legend = f"Probability of high potential: {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[0.5])} 0.5 → {dot(RDYLGN_HEX[1])} 1"
 
 m["tier_name"] = np.array(TIER_NAMES)[m["tier"]]
 # keep the payload sent to the browser small: only what the layers and the tooltip use
@@ -75,7 +74,7 @@ if view == "Hexagons":
         get_line_color=[255, 255, 255, 120], line_width_min_pixels=0.5, stroked=True, pickable=True,
         auto_highlight=True))
     tooltip = {"html": f"<b>{model}</b><br/>Mean P(high potential): <b>{{mean}}</b><br/>Sites in hexagon: {{count}}"}
-    legend = f"{model}: average probability of high potential per hexagon: :red[● 0] → :orange[● 0.5] → :green[● 1]"
+    legend = f"{model}: average probability of high potential per hexagon: {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[0.5])} 0.5 → {dot(RDYLGN_HEX[1])} 1"
 else:
     # wall-to-wall surface (nearest sample point, like the notebook's folium map) + the points on top for clicks
     spacing = float(np.sqrt(AOI_KM2 / len(df)))                       # km between neighbouring sites
@@ -103,7 +102,7 @@ deck = pdk.Deck(
 )
 event = st.pydeck_chart(deck, height=620, on_select="rerun", selection_mode="single-object", key="map",
                         alt=f"Map of {model} restoration-potential scores, coloured by {view.lower()}")
-st.markdown(legend)
+st.markdown(legend, unsafe_allow_html=True)
 
 # ---- details of the clicked site ----
 picked = (event.selection.objects.get("sites") or []) if event and event.selection else []

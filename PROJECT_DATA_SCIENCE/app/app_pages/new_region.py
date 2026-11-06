@@ -3,7 +3,7 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
-from common import (FEATURE_INFO, REGION, TIER_COLORS, TIER_NAMES, cnn_predict, hex_to_rgb, hexbin_mean, load_cnn,
+from common import (FEATURE_INFO, REGION, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, dot, cnn_predict, hex_to_rgb, hexbin_mean, load_cnn,
                     load_models, load_points, rdylgn, surface_png)
 
 CNN_NAME = "CNN (2D patches)"
@@ -142,13 +142,13 @@ with st.container(horizontal=True):
 # ---- colours per view ----
 if view == "Tiers":
     m[["r", "g", "b"]] = np.array([hex_to_rgb(c) for c in TIER_COLORS])[m["tier"]]
-    legend = " · ".join(f":{c}[●] {n}" for c, n in zip(["red", "orange", "green"], TIER_NAMES))
+    legend = " &nbsp;·&nbsp; ".join(f"{dot(c)} {n}" for c, n in zip(TIER_COLORS, TIER_NAMES))
 elif view == "Model agreement":
     m[["r", "g", "b"]] = rdylgn(m["votes"] / len(models))
-    legend = f"Number of models predicting *high* (≥ 0.5): :red[● 0] → :green[● {len(models)}]"
+    legend = f"Number of models predicting *high* (≥ 0.5): {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[1])} {len(models)}"
 else:
     m[["r", "g", "b"]] = rdylgn(m["score"])
-    legend = f"{model}: probability of high potential :red[● 0] → :orange[● 0.5] → :green[● 1]"
+    legend = f"{model}: probability of high potential {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[0.5])} 0.5 → {dot(RDYLGN_HEX[1])} 1"
 
 m["tier_name"] = np.array(TIER_NAMES)[m["tier"]]
 plot = m[["lon", "lat", "r", "g", "b", "tier_name", "votes", "score"]].round({"lon": 5, "lat": 5, "score": 2})
@@ -161,7 +161,7 @@ if view == "Hexagons":
                         get_fill_color=["r", "g", "b", 200], get_line_color=[255, 255, 255, 120],
                         line_width_min_pixels=0.5, stroked=True, pickable=True, auto_highlight=True)]
     tooltip = {"html": f"<b>{model}</b><br/>Mean P(high potential): <b>{{mean}}</b><br/>Points in hexagon: {{count}}"}
-    legend = f"{model}: average probability of high potential per hexagon: :red[● 0] → :orange[● 0.5] → :green[● 1]"
+    legend = f"{model}: average probability of high potential per hexagon: {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[0.5])} 0.5 → {dot(RDYLGN_HEX[1])} 1"
 else:
     # wall-to-wall surface (nearest sample point, clipped to the region) + the points on top for hover
     image, bounds = surface_png(plot["lon"].to_numpy(), plot["lat"].to_numpy(), plot[["r", "g", "b"]].to_numpy(),
@@ -184,7 +184,7 @@ st.pydeck_chart(pdk.Deck(layers=[*layers, outline], tooltip=tooltip,
                          initial_view_state=pdk.ViewState(latitude=float(scored["lat"].mean()),
                                                           longitude=float(scored["lon"].mean()), zoom=zoom)),
                 height=600, alt=f"Map of {model} restoration-potential scores in {full_name}, {view.lower()} view")
-st.markdown(legend)
+st.markdown(legend, unsafe_allow_html=True)
 
 # ---- how far is this region from what the models were trained on? ----
 train = load_points()

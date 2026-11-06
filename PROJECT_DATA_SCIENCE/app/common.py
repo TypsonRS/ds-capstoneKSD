@@ -94,6 +94,15 @@ def hex_to_rgb(h):
     return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
 
 
+def dot(color):
+    """Legend marker in the exact colour the map uses (Streamlit's :red[] etc. are theme tints)."""
+    return f'<span style="color:{color};font-size:1.3em;line-height:1">&#9679;</span>'
+
+
+# RdYlGn end/mid points as hex, for continuous-scale legends
+RDYLGN_HEX = {0: "#a50026", 0.5: "#ffffbf", 1: "#006837"}
+
+
 def rdylgn(p):
     """Matplotlib-free RdYlGn colormap -> (n, 3) uint8 array."""
     stops = np.array([[165, 0, 38], [215, 48, 39], [244, 109, 67], [253, 174, 97], [254, 224, 139],
