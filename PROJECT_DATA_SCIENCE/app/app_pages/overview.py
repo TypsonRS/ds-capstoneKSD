@@ -3,10 +3,10 @@ import streamlit as st
 
 from common import (AOI_KM2, BEST_MODEL, HIGH_T, LOW_T, REGION, TIER_NAMES, TUNED_RESULTS, load_points)
 
-st.title("AgroRestore AI", anchor=False)
-st.markdown(f"Where is land restoration most likely to succeed in the **{REGION}**? "
+st.title(":color[:material/eco: AgroRestore AI :material/eco:]{foreground=\"#00a443\"}", anchor=False)
+st.markdown(f":color[Where is land restoration most likely to succeed in the **{REGION}**? "
             "Machine-learning models trained on 20 years of satellite, climate and soil data "
-            "map the probability that a 250 m site has **high restoration potential**.")
+            "map the probability that a 250 m site has **high restoration potential**.]{foreground=\"#008a3a\"}")
 
 df = load_points()
 res = TUNED_RESULTS.loc[BEST_MODEL]

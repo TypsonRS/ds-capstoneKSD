@@ -152,3 +152,6 @@ PROJECT_DATA_SCIENCE/outputs/tier_map_interactive.html
 
 # AgroRestore AI: self-signed certificate for the local HTTPS app (created by app/make_cert.py)
 PROJECT_DATA_SCIENCE/certs/
+
+# OpenStreetMap country extracts downloaded by the app (Score a new region), hundreds of MB
+PROJECT_DATA_SCIENCE/cache/osm/

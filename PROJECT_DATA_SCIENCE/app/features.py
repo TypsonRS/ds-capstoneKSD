@@ -215,3 +215,101 @@ def region_km2(aoi_gdf):
 
 def spacing_km(area_km2, n):
     return float(np.sqrt(area_km2 / max(n, 1)))
+
+
+# ============================ OSM ACCESS DISTANCES (same as the notebook's "Accessibility" step) ============================
+# The notebook reads roads and settlements from a local OpenStreetMap extract. For a new region the app
+# downloads the Geofabrik extract of every country the region touches (once, kept in cache/osm/) and
+# measures the same two distances with the same road and place classes.
+from pathlib import Path
+
+OSM_ROAD_CLASSES = ["motorway", "trunk", "primary", "secondary", "tertiary",
+                    "unclassified", "residential", "track"]
+OSM_PLACE_CLASSES = ["village", "hamlet", "town", "city"]
+OSM_DIST_COLS = ["dist_to_road_m", "dist_to_settlement_m"]
+OSM_CACHE = Path(__file__).resolve().parents[1] / "cache" / "osm"
+GEOFABRIK_INDEX = "https://download.geofabrik.de/index-v1.json"
+OSM_SEARCH_BUFFER_DEG = 0.2        # also read roads/places ~20 km outside the boundary, so edge points are not penalised
+
+
+def _download(url, dest):
+    import requests
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    with requests.get(url, stream=True, timeout=60) as r:
+        r.raise_for_status()
+        with open(tmp, "wb") as f:
+            for chunk in r.iter_content(1 << 20):
+                f.write(chunk)
+    tmp.replace(dest)                  # only a complete download gets the final name
+    return dest
+
+
+def _country_extracts(aoi_gdf):
+    """Paths of the Geofabrik country extracts that overlap the region (downloaded when missing)."""
+    index_path = OSM_CACHE / "geofabrik-index-v1.json"
+    if not index_path.exists():
+        _download(GEOFABRIK_INDEX, index_path)
+    index = gpd.read_file(index_path)
+    continents = set(index.loc[index["parent"].isna(), "id"])
+    countries = index[index["parent"].isin(continents)]          # one level below the continents
+    area = aoi_gdf.to_crs("EPSG:4326").geometry.union_all().buffer(OSM_SEARCH_BUFFER_DEG)
+    hits = countries[countries.intersects(area)]
+    if hits.empty:
+        raise ValueError("No OpenStreetMap country extract covers this region.")
+    paths = []
+    for _, row in hits.iterrows():
+        name = row["id"].replace("/", "_")
+        layers = OSM_CACHE / f"{name}-roads-places.gpkg"
+        if not layers.exists():
+            pbf = OSM_CACHE / f"{name}-latest.osm.pbf"
+            if not pbf.exists():
+                _download(row["urls"]["pbf"], pbf)
+            _extract_layers(pbf, layers)
+        paths.append(layers)
+    return paths
+
+
+def _extract_layers(pbf, dest):
+    """Keeps only the road lines and place points of a country extract (parsing the .pbf is slow, the GPKG is not)."""
+    in_list = lambda vals: ", ".join(f"'{v}'" for v in vals)
+    roads = gpd.read_file(pbf, layer="lines", columns=["highway"],
+                          where=f"highway IN ({in_list(OSM_ROAD_CLASSES)})")
+    places = gpd.read_file(pbf, layer="points", columns=["place"],
+                           where=f"place IN ({in_list(OSM_PLACE_CLASSES)})")
+    tmp = dest.with_suffix(".part.gpkg")
+    tmp.unlink(missing_ok=True)
+    roads.to_file(tmp, layer="roads", driver="GPKG")
+    places.to_file(tmp, layer="places", driver="GPKG")
+    tmp.replace(dest)
+
+
+def add_osm_distances(df, aoi_gdf):
+    """Adds dist_to_road_m and dist_to_settlement_m (metres to the nearest OSM road / place point).
+
+    Returns (df, None) on success, or (df with NaN distances, error message) when OpenStreetMap is unavailable."""
+    df = df.copy()
+    try:
+        minx, miny, maxx, maxy = aoi_gdf.to_crs("EPSG:4326").total_bounds
+        b = OSM_SEARCH_BUFFER_DEG
+        bbox = (minx - b, miny - b, maxx + b, maxy + b)
+        roads, places = [], []
+        for gpkg in _country_extracts(aoi_gdf):
+            roads.append(gpd.read_file(gpkg, layer="roads", bbox=bbox))
+            places.append(gpd.read_file(gpkg, layer="places", bbox=bbox))
+        pts = gpd.GeoDataFrame(geometry=gpd.points_from_xy(df["lon"], df["lat"]), crs="EPSG:4326")
+        utm = pts.estimate_utm_crs()
+        pts = pts.to_crs(utm)
+        for col, parts in zip(OSM_DIST_COLS, (roads, places)):
+            layer = pd.concat(parts, ignore_index=True)
+            if layer.empty:
+                df[col] = np.nan
+                continue
+            near = gpd.sjoin_nearest(pts, layer[["geometry"]].to_crs(utm), distance_col="d")
+            df[col] = near.groupby(level=0)["d"].min().reindex(pts.index).to_numpy()
+        return df, None
+    except Exception as e:  # no internet, Geofabrik down, unreadable file...: score without the distances
+        for col in OSM_DIST_COLS:
+            df[col] = np.nan
+        return df, f"{type(e).__name__}: {e}"

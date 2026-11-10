@@ -11,7 +11,7 @@ TABLE_MODELS = ["Random Forest", "XGBoost", "Logistic Regression"]
 
 st.title("Score a new region", anchor=False)
 st.caption(f"Pull the same satellite, climate and soil layers for any area and score it with the models trained "
-           f"on the {REGION}. Takes 1-3 minutes per region (a little more with the CNN); results are kept for a day.")
+           f"on the {REGION}. Takes 1-3 minutes per region (the first region in a new country also downloads its OpenStreetMap roads, about 1 more minute) (a little more with the CNN); results are kept for a day.")
 
 
 # ============================ CACHED STEPS ============================
@@ -31,11 +31,18 @@ def fetch_region(place, n_points, with_patches):
     aoi, name = features.geocode_region(place)
     image = features.get_features_image(aoi)
     df = features.sample_features(aoi, n_points, image=image)
+    df, osm_error = features.add_osm_distances(df, aoi)
+    # same rule as the notebook: a point with no road / settlement found counts as "very far" (the largest distance);
+    # if OpenStreetMap could not be read at all, use the training region's median so the models still run
+    train = load_points()
+    for col in features.OSM_DIST_COLS:
+        fill = df[col].max() if df[col].notna().any() else train[col].median()
+        df[col] = df[col].fillna(fill)
     P = None
     if with_patches:
         cnn = load_cnn()
         P = features.fetch_patches(df, image, cnn["channels"], cnn["radius"])
-    return df, P, aoi.__geo_interface__, name, features.region_km2(aoi)
+    return df, P, aoi.__geo_interface__, name, features.region_km2(aoi), osm_error
 
 
 @st.cache_data(max_entries=20, show_spinner=False)
@@ -79,9 +86,10 @@ with st.status(f"Scoring **{place}**...", expanded=False) as status:
     try:
         st.write("Connecting to Earth Engine")
         connect_ee()
-        st.write("Finding the boundary and sampling the satellite, climate and soil layers"
+        st.write("Finding the boundary, sampling the satellite, climate and soil layers and measuring the "
+                 "distances to roads and settlements (OpenStreetMap)"
                  + (", then the CNN image patches" if with_cnn else ""))
-        df, P, boundary, full_name, area_km2 = fetch_region(place, n_points, with_cnn)
+        df, P, boundary, full_name, area_km2, osm_error = fetch_region(place, n_points, with_cnn)
         st.write(f"Scoring {len(df):,} points with the trained models")
         scored, n_missing = score(df, P)
     except Exception as e:  # geocoding, Earth Engine or model errors are shown to the user, not raised
@@ -93,6 +101,11 @@ with st.status(f"Scoring **{place}**...", expanded=False) as status:
         st.exception(e)
         st.stop()
     status.update(label=f"**{full_name}**: {len(scored):,} points scored", state="complete")
+
+if osm_error:
+    st.warning("**Distances to roads and settlements could not be measured** (OpenStreetMap unavailable), so every "
+               f"point uses the typical distance of the {REGION}. Scores ignore local access; try again later.\n\n"
+               f"Details: `{osm_error}`", icon=":material/signal_disconnected:")
 
 if scored.empty:
     st.warning("No point in this region has all the inputs the models need.")
