@@ -5,7 +5,7 @@ import streamlit as st
 from common import (BEST_MODEL, FEATURE_INFO, HIGH_T, LOW_T, TIER_NAMES, cnn_predict, load_cnn, load_models,
                     load_points, load_site_patches, tier_of)
 
-st.title("Score a site", anchor=False)
+st.title(':color[Score a site]{foreground="#00a443"}', anchor=False)
 st.caption("Start from a real site, change its conditions, and see how the trained models respond.")
 
 df = load_points()

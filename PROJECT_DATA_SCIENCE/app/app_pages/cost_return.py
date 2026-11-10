@@ -5,11 +5,12 @@ import pydeck as pdk
 import streamlit as st
 
 from common import AOI_KM2, BEST_MODEL, HIGH_T, LOW_T, hex_to_rgb, load_countries, load_points
-from costs import (CARBON_PRICE, DISCOUNT_RATE, FOREST_INCOME_HA_YR, FOREST_INCOME_HA_YR_MAX, FUELWOOD_START_YR, HORIZON_YRS, REFERENCES,
+from costs import (forest_income, CARBON_PRICE, CROP_COST_XOF_HA, DISCOUNT_RATE, DISCOUNT_RATE_RANGE, FOREST_EST_COST,
+                   FOREST_EST_COST_RANGE, FOREST_MAINT_COST, FOREST_MAINT_COST_RANGE, FOREST_MAINT_YRS, WAGE_XOF_H,
+                   XOF_PER_USD, FOREST_INCOME_HA_YR, FOREST_INCOME_HA_YR_MAX, FUELWOOD_START_YR, HORIZON_YRS, REFERENCES,
                    SCEN_COLORS, SHEA_START_YR, cost_return)
 
-discount_rate = DISCOUNT_RATE
-st.title("Cost and return", anchor=False)
+st.title(':color[Cost and return]{foreground="#00a443"}', anchor=False)
 st.caption(f"Cost and expected return per hectare of two general land uses, for the **high** and **low** potential "
            f"sites of the best model (**{BEST_MODEL}**). Costs and revenues are present values in USD; the expected "
            "return is the revenue if restoration succeeds × the model's probability of high potential, reduced by "
@@ -17,19 +18,10 @@ st.caption(f"Cost and expected return per hectare of two general land uses, for 
 
 with st.sidebar:
     st.header("Investor settings", anchor=False)
-    forest_income_ha_yr = st.slider(
-        "Forest income (USD/ha/yr)", 0, 300, round(FOREST_INCOME_HA_YR), 1, key="cr_forest_income",
-        help=f"Money one hectare of restored forest earns per year in full production: carbon credits + shea "
-             f"kernels + fuelwood, minus the carbon the burnt wood no longer earns.\n\n"
-             f"- **{FOREST_INCOME_HA_YR:.0f}** (default) = cited mean values: carbon at {CARBON_PRICE} USD/t "
-             f"(2023 average) from year 4, fuelwood (FAO 1983, Central Togo prices) from year "
-             f"{FUELWOOD_START_YR}, shea (FAO & Global Shea Alliance 2020) from year {SHEA_START_YR}.\n"
-             f"- **{FOREST_INCOME_HA_YR_MAX:.0f}** = top of the cited ranges (more fuelwood at a higher price, "
-             "upgraded shea yields).\n"
-             f"- **Above {FOREST_INCOME_HA_YR_MAX:.0f}** = only with a carbon price above the 2023 average, which "
-             "the sources do not give.\n\n"
-             "Moving the slider scales all incomes together; each keeps its start year. Sources: **Inputs and "
-             "sources** below.")
+    # Forest income is not a setting: the cited income lines (costs.py) feed the model unchanged. The box shows
+    # their average per year over the horizon in today's money, so it follows the horizon and the discount rate.
+    forest_income_ha_yr = FOREST_INCOME_HA_YR
+    income_box = st.container()
     horizon = st.slider("Investment horizon (years)", 10, 40, HORIZON_YRS, 5)
     low_t, high_t = st.slider("P tier thresholds (low ≤ / high ≥)", 0.0, 1.0, (LOW_T, HIGH_T), 0.05,
                               key="cr_tiers", help="P = best model's probability of high potential. Sites with "
@@ -38,6 +30,30 @@ with st.sidebar:
     p_min, p_max = st.slider("Probability of high potential (P)", 0.0, 1.0, (0.0, 1.0), 0.05, key="cr_p_range",
                              help="Only sites whose P lies in this range are costed. Narrow it to compare how "
                                   "cost and return change between low-P and high-P sites.")
+
+    st.header("Cost settings", anchor=False)
+    st.caption("Every slider starts at its cited reference value (see **Inputs and sources** below).")
+    forest_est_cost = st.slider(
+        "Forest establishment (USD/ha, once)", 0, 1500, FOREST_EST_COST, 10, key="cr_forest_est",
+        help=f"Planting or assisted natural regeneration in year 1. Default {FOREST_EST_COST} USD/ha "
+             f"(FAO & AUDA-NEPAD 2021, Madagascar); cited range {FOREST_EST_COST_RANGE[0]}-"
+             f"{FOREST_EST_COST_RANGE[1]:,} USD/ha (Ethiopia). Farmer-managed natural regeneration costs 40-50.")
+    forest_maint_cost = st.slider(
+        "Forest maintenance (USD/ha/yr)", 0, 220, FOREST_MAINT_COST, 1, key="cr_forest_maint",
+        help=f"Weeding, fire breaks and replanting in years 1-{FOREST_MAINT_YRS}. Default {FOREST_MAINT_COST}; "
+             f"cited range {FOREST_MAINT_COST_RANGE[0]}-{FOREST_MAINT_COST_RANGE[1]} USD/ha/yr (Bodin et al. 2021).")
+    crop_cost_xof_ha = st.slider(
+        "Crop production cost (FCFA/ha/yr)", 0, 200_000, CROP_COST_XOF_HA, 1_000, key="cr_crop_cost",
+        help=f"Seed, fertiliser, tools and hired labour every year. Default {CROP_COST_XOF_HA:,} FCFA/ha "
+             f"(≈ {CROP_COST_XOF_HA / XOF_PER_USD:.0f} USD; Togo 2022, La Cinquième 2024).")
+    wage_xof_h = st.slider(
+        "Farm wage (FCFA/hour)", 150.0, 600.0, float(WAGE_XOF_H), 1.0, key="cr_wage", format="%.0f",
+        help=f"Prices the labour for land clearing, stone bunds and walking to the site. Default "
+             f"{WAGE_XOF_H:.0f} FCFA/h, the Togo minimum wage (SMIG = SMAG, 2023).")
+    discount_rate = st.slider(
+        "Discount rate", DISCOUNT_RATE_RANGE[0], DISCOUNT_RATE_RANGE[1], DISCOUNT_RATE, 0.01, key="cr_discount",
+        format="percent", help=f"How much less money is worth each year later. Default {DISCOUNT_RATE:.0%} "
+                               "(an assumption). A higher rate makes late income, such as forest carbon, worth less.")
 
 df = load_points()
 ha_per_site = AOI_KM2 * 100 / len(df)                     # each uniformly sampled site = equal share of the region
@@ -51,10 +67,29 @@ if (p_min, p_max) != (0.0, 1.0):
     st.info(f"Showing only sites with {p_min:.2f} ≤ P ≤ {p_max:.2f} ({len(inv):,} sites).",
             icon=":material/filter_alt:")
 inv = inv.join(cost_return(inv[["opportunity", "slope", "ph", "fire_freq", "dist_to_road_m",
-                                "dist_to_settlement_m"]], forest_income_ha_yr, discount_rate, horizon))
+                                "dist_to_settlement_m"]], forest_income_ha_yr, discount_rate, horizon,
+                           forest_est_cost, forest_maint_cost, crop_cost_xof_ha, wage_xof_h))
 
 LEVELS = {"High potential": f"P ≥ {high_t:.2f}", "Low potential": f"P ≤ {low_t:.2f}"}
 inv["level"] = np.select([inv["opportunity"] >= high_t, inv["opportunity"] <= low_t], list(LEVELS), "Uncertain")
+
+# ---- forest income: average per year over the horizon, in today's money ----
+# The forest earns nothing at first (carbon from year 4, fuelwood from year 6, shea from year 15), so its average
+# yearly income depends on the horizon and the discount rate: present value of the income ÷ present value of 1 USD/yr.
+years = np.arange(1, horizon + 1)
+disc = 1 / (1 + discount_rate) ** years
+income_pv = (sum(forest_income(forest_income_ha_yr, horizon).values()) * disc).sum()
+income_per_year = income_pv / disc.sum()
+with income_box:
+    st.metric("Forest income (USD/ha/yr)", f"{income_per_year:,.0f}", border=True,
+              help=f"Average money one hectare of restored forest earns per year over the {horizon}-year horizon, "
+                   f"in today's money at the {discount_rate:.0%} discount rate. It updates automatically with the "
+                   f"horizon and the discount rate. In full production the forest earns {forest_income_ha_yr:.0f} "
+                   f"USD/ha/yr: carbon credits at {CARBON_PRICE} USD/t (2023 average) from year 4, fuelwood (FAO "
+                   f"1983, Central Togo prices) from year {FUELWOOD_START_YR} and shea kernels (FAO & Global Shea "
+                   f"Alliance 2020) from year {SHEA_START_YR}, minus the carbon the burnt wood no longer earns. "
+                   "Before the model probability and fire risk. Details: **Inputs and sources** below.")
+
 USES = {"Forest restoration": "forest", "Agriculture": "agri"}
 LOSS = "Not profitable"
 EXCLUDED = "Excluded"

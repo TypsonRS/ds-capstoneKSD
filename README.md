@@ -73,7 +73,7 @@ with a total cost of 406 million USD and a total NPV of 52 million USD. Forest r
 about 142 USD/ha/yr in full production (carbon credits, fuelwood and shea kernels); at today's
 average carbon price of 15.6 USD/t that does not cover its costs on any site, not even on the
 best one (ROI −27% at P(high) = 0.93). The result is very sensitive to the carbon price; the
-app's Cost and return page has a slider to explore it.
+app's Cost and return page lets you test the cost inputs and discount rate.
 
 ## How the notebook works
 
@@ -186,10 +186,11 @@ Points missing a critical layer are dropped and the table is saved as
   three basemaps (Esri streets and satellite, OpenTopoMap), a mini-map and click-for-details with
   the scores of every model. The mini-map also uses Esri tiles: OpenStreetMap's own tile server
   blocks pages opened as a local file and shows an "Access blocked" tile instead.
-- **Opening the web map without re-running the notebook**: run only the first cell under
-  *WEB MAP*, which opens the saved `interactive_map.html` in the browser, or double-click that file
-  in Windows Explorer. The map's image layers (`_layer_*.png`) sit next to it, so keep the folder
-  together. Run the big map cell after it only to rebuild the map.
+- **Opening the web map without re-running the notebook**: in the section *STREAMLIT DEPLOYMENT
+  AND WEB MAP*, run only the cell right after the map cell. It opens the saved
+  `interactive_map.html` in the browser. You can also double-click that file in Windows Explorer.
+  The map's image layers (`_layer_*.png`) sit next to it, so keep the folder together. Run the map
+  cell itself only to rebuild the map.
 
 ### 9. Cost and return
 
@@ -211,7 +212,9 @@ point ≈ 13 ha) is costed for two general land uses, with no specific crop or t
 - **ROI** = NPV ÷ cost, the net gain per dollar invested.
 
 Over the 20-year horizon the present value of the revenue, if the land use succeeds, is
-755 USD/ha for forest restoration and 2,945 USD/ha for agriculture. Averaged over all investable
+755 USD/ha for forest restoration and 2,945 USD/ha for agriculture. Spread evenly over the
+horizon in today's money, that is 89 USD/ha per year for the forest, well below its 142 USD/ha/yr in
+full production because its income starts late, and 346 USD/ha per year for agriculture. Averaged over all investable
 points, both land uses lose money (mean NPV −638 and −771 USD/ha), because the average site has
 only a middling probability of success.
 
@@ -224,8 +227,12 @@ sites).
 
 The site table in the Results section above is read from `site_ranking_cost_return.csv`. The
 **Cost and return** page of the app ([app/costs.py](PROJECT_DATA_SCIENCE/app/costs.py)) uses the
-same inputs and income lines as the notebook, adds sliders for the forest income, horizon and
-tier thresholds, and splits the results by potential tier instead of by site. Every input value,
+same inputs and income lines as the notebook. It adds sliders for the horizon, the tier
+thresholds and the main cost inputs: forest establishment and maintenance, crop production cost,
+farm wage and discount rate (0-20%). Each slider starts at the notebook's value. The page shows
+the forest income as its average per year over the horizon in today's money, 89 USD/ha by
+default, which updates with the horizon and discount rate. It splits the results by potential
+tier instead of by site. Every input value,
 its source file and page number are listed in
 [references/cost_return_sources/README.md](PROJECT_DATA_SCIENCE/references/cost_return_sources/README.md);
 the values without a reference are marked `ASSUMPTION` in the code.
@@ -241,7 +248,7 @@ It runs locally at **https://agrorestoreai** (see *Running it*, step 5) and has 
 | **Opportunity map** | Interactive map per model: probability, tiers, hexagon averages, model agreement. Adjustable tier thresholds, an option to hide protected areas, click-for-details, CSV download. |
 | **Explore the data** | Distributions per tier, score against each condition, average conditions per tier, correlations |
 | **Model performance** | Results table, targets, gain from tuning, permutation importance, notebook figures |
-| **Cost and return** | Cost, expected return, NPV and ROI per hectare for forest restoration and agriculture, on high and low-potential land. Sliders for forest income, horizon, tier thresholds and P range; map of the better use per site, NPV spread, summary table, CSV download, inputs and sources |
+| **Cost and return** | Cost, expected return, NPV and ROI per hectare for forest restoration and agriculture, on high and low-potential land. Sliders for horizon, tier thresholds, P range and the cost inputs (establishment, maintenance, crop cost, wage, discount rate); forest income per year over the horizon in today's money, updated automatically; map of the better use per site, NPV spread, summary table, CSV download, inputs and sources |
 | **Score a site** | Load a real site or a location, change its conditions, get scores from the trained models |
 | **Score a new region** | Type any place name: the app samples the same layers from Earth Engine, measures the OpenStreetMap distances, scores the region with all four models and fine-tunes the CNN on it. Each model is then checked against the region's own outcome (see *Scoring a new region* below). |
 

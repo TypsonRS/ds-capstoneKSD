@@ -63,18 +63,31 @@ LOW_PH = 5.5             # acidic soil threshold
 HORIZON_YRS = 20
 DISCOUNT_RATE = 0.10     # ASSUMPTION
 
-SCENARIOS = {
-    "Forest restoration": dict(
-        base_cost_ha=FOREST_EST_COST, yearly_cost_ha=FOREST_MAINT_COST, yearly_cost_yrs=FOREST_MAINT_YRS,
-        labour_days=FOREST_LABOUR_DAYS, haul_t=SEEDLINGS_HA * SEEDLING_KG / 1000, access_yearly=False,
-        bund_cost_ha=0, fire_cost_ha_yr=FIRE_TREAT_USD_HA, lime_cost_ha=0,
-        carbon=True, revenue_start_yr=4, fire_loss=0.6),          # ASSUMPTION: revenue start, fire loss
-    "Agriculture": dict(
-        base_cost_ha=CLEARING_DAYS * WAGE_USD_DAY, yearly_cost_ha=CROP_COST_XOF_HA / XOF_PER_USD,
-        yearly_cost_yrs=None, labour_days=CROP_LABOUR_DAYS, haul_t=CROP_YIELD_KG_HA / 1000, access_yearly=True,
-        bund_cost_ha=BUND_DAYS * WAGE_USD_DAY, fire_cost_ha_yr=0, lime_cost_ha=LIME_T_HA * LIME_USD_T,
-        carbon=False, revenue_start_yr=1, fire_loss=0.2),          # ASSUMPTION: fire loss
-}
+# cited ranges for the cost sliders of the app (the defaults above stay the reference values)
+FOREST_EST_COST_RANGE = (87, 1445)      # FAO & AUDA-NEPAD 2021: Ethiopia 87-1,445 USD/ha
+FOREST_MAINT_COST_RANGE = (2, 213)      # Bodin et al. 2021: 2-213 USD/ha/yr
+DISCOUNT_RATE_RANGE = (0.0, 0.20)       # 0% = no discounting; ASSUMPTION: 20% as the upper end
+
+
+def scenarios(forest_est_cost=FOREST_EST_COST, forest_maint_cost=FOREST_MAINT_COST,
+              crop_cost_xof_ha=CROP_COST_XOF_HA, wage_xof_h=WAGE_XOF_H):
+    """The two land uses with their cost inputs; every argument defaults to its reference value."""
+    wage_usd_day = wage_xof_h * WORKDAY_H / XOF_PER_USD
+    return {
+        "Forest restoration": dict(
+            base_cost_ha=forest_est_cost, yearly_cost_ha=forest_maint_cost, yearly_cost_yrs=FOREST_MAINT_YRS,
+            labour_days=FOREST_LABOUR_DAYS, haul_t=SEEDLINGS_HA * SEEDLING_KG / 1000, access_yearly=False,
+            bund_cost_ha=0, fire_cost_ha_yr=FIRE_TREAT_USD_HA, lime_cost_ha=0,
+            carbon=True, revenue_start_yr=4, fire_loss=0.6),          # ASSUMPTION: revenue start, fire loss
+        "Agriculture": dict(
+            base_cost_ha=CLEARING_DAYS * wage_usd_day, yearly_cost_ha=crop_cost_xof_ha / XOF_PER_USD,
+            yearly_cost_yrs=None, labour_days=CROP_LABOUR_DAYS, haul_t=CROP_YIELD_KG_HA / 1000, access_yearly=True,
+            bund_cost_ha=BUND_DAYS * wage_usd_day, fire_cost_ha_yr=0, lime_cost_ha=LIME_T_HA * LIME_USD_T,
+            carbon=False, revenue_start_yr=1, fire_loss=0.2),          # ASSUMPTION: fire loss
+    }
+
+
+SCENARIOS = scenarios()
 SCEN_COLORS = {"Forest restoration": "#1a9850", "Agriculture": "#fdae61"}
 
 # forest income lines at the cited values: (USD/ha/yr in full production, first year)
@@ -133,10 +146,13 @@ def forest_income(total: float, horizon: int) -> dict:
 
 @st.cache_data(max_entries=20, show_spinner="Costing every site...")
 def cost_return(df: pd.DataFrame, forest_income_ha_yr: float = FOREST_INCOME_HA_YR,
-                discount_rate: float = DISCOUNT_RATE, horizon: int = HORIZON_YRS) -> pd.DataFrame:
+                discount_rate: float = DISCOUNT_RATE, horizon: int = HORIZON_YRS,
+                forest_est_cost: float = FOREST_EST_COST, forest_maint_cost: float = FOREST_MAINT_COST,
+                crop_cost_xof_ha: float = CROP_COST_XOF_HA, wage_xof_h: float = WAGE_XOF_H) -> pd.DataFrame:
     """Cost, expected return and NPV per hectare (present values, USD) of both land uses for every site.
     Expects the columns of common.load_points(): opportunity, slope, ph, fire_freq and the two OSM distances.
-    forest_income_ha_yr: combined forest income (carbon + shea + fuelwood) in full production, USD/ha/yr."""
+    forest_income_ha_yr: combined forest income (carbon + shea + fuelwood) in full production, USD/ha/yr.
+    The cost inputs (forest set-up and upkeep, crop production cost, wage) default to the reference values."""
     years = np.arange(1, horizon + 1)
     disc = 1 / (1 + discount_rate) ** years
     pv_lime = disc[(years - 1) % LIME_EFFECT_YRS == 0].sum()
@@ -145,14 +161,14 @@ def cost_return(df: pd.DataFrame, forest_income_ha_yr: float = FOREST_INCOME_HA_
     d_road_km = df["dist_to_road_m"].fillna(df["dist_to_road_m"].max()) / 1000
 
     out = pd.DataFrame(index=df.index)
-    for name, s in SCENARIOS.items():
+    for name, s in scenarios(forest_est_cost, forest_maint_cost, crop_cost_xof_ha, wage_xof_h).items():
         k = "forest" if s["carbon"] else "agri"
         if s["carbon"]:
             yearly_rev = sum(forest_income(forest_income_ha_yr, horizon).values(), np.zeros(horizon))
         else:
             yearly_rev = np.where(years >= s["revenue_start_yr"],
                                   CROP_YIELD_KG_HA * CROP_PRICE_XOF_KG * FARMGATE_SHARE / XOF_PER_USD, 0.0)
-        access = (s["labour_days"] * 2 * d_settle_km / WALK_KMH * WAGE_XOF_H / XOF_PER_USD
+        access = (s["labour_days"] * 2 * d_settle_km / WALK_KMH * wage_xof_h / XOF_PER_USD
                   + s["haul_t"] * d_road_km * HEADLOAD_USD_TKM)
         once = (s["base_cost_ha"] + np.where(df["slope"] > SLOPE_FREE_DEG, s["bund_cost_ha"], 0)
                 + (0 if s["access_yearly"] else access))

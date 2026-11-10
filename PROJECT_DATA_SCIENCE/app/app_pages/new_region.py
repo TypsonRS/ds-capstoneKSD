@@ -10,7 +10,7 @@ from common import (FEATURE_INFO, REGION, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, d
 CNN_NAME = "CNN (2D patches)"
 TABLE_MODELS = ["Random Forest", "XGBoost", "Logistic Regression"]
 
-st.title("Score a new region", anchor=False)
+st.title(':color[Score a new region]{foreground="#00a443"}', anchor=False)
 st.caption(f"Pull the same satellite, climate and soil layers for any area, score it with the models trained on the "
            f"{REGION}, and fine-tune the CNN on the new region with its own 20-year vegetation record. A region "
            "takes 1-3 minutes, about 1-2 more with the CNN. The first region in a new country also downloads its "

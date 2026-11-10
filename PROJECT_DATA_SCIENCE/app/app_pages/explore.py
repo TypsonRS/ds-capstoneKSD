@@ -4,7 +4,7 @@ import streamlit as st
 
 from common import FEATURE_INFO, TIER_COLORS, TIER_NAMES, load_points
 
-st.title("Explore the data", anchor=False)
+st.title(':color[Explore the data]{foreground="#00a443"}', anchor=False)
 st.caption("How do conditions differ between high- and low-potential sites?")
 
 df = load_points()

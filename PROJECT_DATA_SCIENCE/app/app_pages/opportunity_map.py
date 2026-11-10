@@ -6,7 +6,7 @@ import streamlit as st
 from common import (AOI_KM2, BEST_MODEL, FEATURE_INFO, MODEL_COLS, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, dot, hex_to_rgb,
                     hexbin_mean, load_countries, load_points, rdylgn, surface_png)
 
-st.title("Opportunity map", anchor=False)
+st.title(':color[Opportunity map]{foreground="#00a443"}', anchor=False)
 st.caption("Each sampled 250 m site colours the area around it. Click the map to see the conditions of the nearest site.")
 
 df = load_points()

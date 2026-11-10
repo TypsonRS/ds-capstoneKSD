@@ -4,7 +4,7 @@ import streamlit as st
 
 from common import BEST_MODEL, FEATURE_INFO, FIGURES, PERM_IMPORTANCE, TUNED_RESULTS, load_baseline
 
-st.title("Model performance", anchor=False)
+st.title(':color[Model performance]{foreground="#00a443"}', anchor=False)
 st.caption("All scores are on held-out 10 km blocks (17,305 test sites in 49 blocks) that the models never saw. "
            f"The best model, **{BEST_MODEL}**, was chosen on spatial cross-validation, not on the test set.")
 
