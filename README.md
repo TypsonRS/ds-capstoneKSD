@@ -183,8 +183,13 @@ Points missing a critical layer are dropped and the table is saved as
   (`reports/FIGURES/interactive/interactive_map.html`, about 10 MB) with one probability layer
   per model, the tier layer, 1,202 hexagons with the Random Forest average, the study-area
   outline, country borders (from the US LSIB dataset, cached in `data/countries_near_aoi.shp`),
-  three basemaps (Esri streets and satellite, OpenTopoMap) and click-for-details with the
-  scores of every model
+  three basemaps (Esri streets and satellite, OpenTopoMap), a mini-map and click-for-details with
+  the scores of every model. The mini-map also uses Esri tiles: OpenStreetMap's own tile server
+  blocks pages opened as a local file and shows an "Access blocked" tile instead.
+- **Opening the web map without re-running the notebook**: run only the first cell under
+  *WEB MAP*, which opens the saved `interactive_map.html` in the browser, or double-click that file
+  in Windows Explorer. The map's image layers (`_layer_*.png`) sit next to it, so keep the folder
+  together. Run the big map cell after it only to rebuild the map.
 
 ### 9. Cost and return
 
@@ -238,7 +243,42 @@ It runs locally at **https://agrorestoreai** (see *Running it*, step 5) and has 
 | **Model performance** | Results table, targets, gain from tuning, permutation importance, notebook figures |
 | **Cost and return** | Cost, expected return, NPV and ROI per hectare for forest restoration and agriculture, on high and low-potential land. Sliders for forest income, horizon, tier thresholds and P range; map of the better use per site, NPV spread, summary table, CSV download, inputs and sources |
 | **Score a site** | Load a real site or a location, change its conditions, get scores from the trained models |
-| **Score a new region** | Type any place name: the app samples the same layers from Earth Engine, scores them with all four models, and warns when conditions fall outside the training range |
+| **Score a new region** | Type any place name: the app samples the same layers from Earth Engine, measures the OpenStreetMap distances, scores the region with all four models and fine-tunes the CNN on it. Each model is then checked against the region's own outcome (see *Scoring a new region* below). |
+
+### Scoring a new region
+
+The **Score a new region** page works for any area OpenStreetMap knows, for example
+`Plateaux Region, Togo` or `Zabzugu District, Ghana`:
+
+1. **Features**: the same 17 layers as the notebook, from Earth Engine
+   ([app/features.py](PROJECT_DATA_SCIENCE/app/features.py)), for 1,000 to 5,000 random points.
+2. **Access distances**: the app downloads the Geofabrik OpenStreetMap extract of every country
+   the region touches, once, and keeps only its roads and places in `cache/osm/` (not committed;
+   Ghana alone is about 120 MB). The distances use the notebook's road and place classes and a
+   20 km margin around the boundary, so villages just across the border count. On 2,000 training
+   points they match the notebook's values exactly. If OpenStreetMap cannot be reached, the
+   page uses the Centrale Region's median distances and says so.
+3. **Local check**: the label, the NDVI trend 2006-2025, is available everywhere, so the app labels
+   the new region's points with the same rule (top 30% = high, bottom 30% = low potential) and
+   measures every model's ROC-AUC and F1 there. The reliability message is green from a ROC-AUC of
+   0.75, blue from 0.65 and yellow below.
+4. **Fine-tuned CNN**: the CNN trained on the Centrale Region is trained further on the new
+   region's labelled points ([app/adapt.py](PROJECT_DATA_SCIENCE/app/adapt.py), 30 epochs, learning
+   rate 0.001, the notebook's flips and rotations). With spatial 5-fold cross-validation on 10 km
+   blocks, every point is scored by a version of the CNN that never saw its block, so the local
+   score is not inflated. The map starts on the model with the best local score.
+
+Measured ROC-AUC on the new region's own outcome (3,000 sample points):
+
+| Region | Best Centrale-only model | CNN before fine-tuning | CNN after fine-tuning |
+|---|---|---|---|
+| Plateaux Region, Togo | 0.57 | 0.55 | **0.80** |
+| Zabzugu District, Ghana | 0.52 | 0.48 | **0.64** |
+
+The models trained only on the Centrale Region do not transfer: elsewhere they rank sites about
+as well as chance. Fine-tuning the CNN with the region's own vegetation record restores a useful
+ranking, and on a large region it reaches the 0.80 target. The scores are relative to the region:
+a high score means "likely among this region's top 30% for greening".
 
 ## Running it
 
@@ -256,7 +296,10 @@ venv\Scripts\python.exe -m pip install -r requirements.txt
 
 **3. OpenStreetMap extract.** Place `africa-261009.osm.pbf` (Geofabrik Africa extract) in
 `PROJECT_DATA_SCIENCE` or its parent folder. It is needed only for the first run; after that the
-roads and settlements come from the cached `osm_roads_settlements_aoi.gpkg`.
+roads and settlements come from the cached `osm_roads_settlements_aoi.gpkg`. The app does not need
+it: for new regions it downloads smaller country extracts itself (see *Scoring a new region*). The
+copy in this folder is incomplete (the download stopped early), so download it again before
+deleting the cache.
 
 **4. Notebook.** Open `AgroRestoreAI.ipynb`, select the `venv` kernel, and run all cells. The first
 full run takes most of a day, mostly Earth Engine downloads and model tuning (the Random Forest
@@ -326,9 +369,11 @@ PROJECT_DATA_SCIENCE/
 │   ├── streamlit_app.py         entry point and navigation
 │   ├── common.py                paths, settings, loaders, map helpers
 │   ├── costs.py                 cost and return model with its reference values
-│   ├── features.py              Earth Engine features for new regions (copy of the notebook's)
+│   ├── features.py              Earth Engine features and OSM distances for new regions (copy of the notebook's)
+│   ├── adapt.py                 local check and CNN fine-tuning for new regions
 │   ├── make_cert.py             creates the self-signed certificate for HTTPS
 │   └── app_pages/               one file per page
+├── cache/osm/                   OpenStreetMap country extracts downloaded by the app (not committed)
 ├── certs/                       localhost.crt and localhost.key (created on first run, not committed)
 ├── data/
 │   ├── DATA_RAW/                raw downloads
@@ -358,13 +403,10 @@ tools.
   to the carbon price.
 - **OSM completeness.** Roads and settlements come from OpenStreetMap, which is incomplete in
   rural Togo, so some distances are overestimated.
-- **One region.** The models learned from Centrale Region only. The app's new-region scoring
-  flags conditions outside the training range. In Plateaux Region, for example, 71% of the
-  points fall outside it, mainly because soil moisture is much lower there.
+- **One training region.** The models learned from the Centrale Region only, and they do not
+  transfer: on the outcome of Plateaux Region and Zabzugu District their ROC-AUC is 0.48-0.57.
+  The app fine-tunes the CNN on each new region instead (ROC-AUC 0.64-0.80). Training on several
+  regions of the savanna belt at once would make all four models more general. Smaller regions
+  have fewer points to learn from and score lower.
 - **Coarse climate.** Rainfall and temperature come from 4-5 km sources and are interpolated to
   250 m, so their local detail is limited.
-
-
-  git push --force-with-lease origin main
-
-
