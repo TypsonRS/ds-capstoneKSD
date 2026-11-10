@@ -363,3 +363,8 @@ tools.
   points fall outside it, mainly because soil moisture is much lower there.
 - **Coarse climate.** Rainfall and temperature come from 4-5 km sources and are interpolated to
   250 m, so their local detail is limited.
+
+
+  
+
+
