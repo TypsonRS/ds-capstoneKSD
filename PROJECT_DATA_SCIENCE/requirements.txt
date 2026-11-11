@@ -12,6 +12,7 @@ osmnx
 pandas
 numpy
 scipy
+requests
 
 # Machine learning
 scikit-learn
@@ -31,6 +32,7 @@ pillow
 streamlit
 pydeck
 altair
+cryptography
 
 # Notebook
 jupyter
