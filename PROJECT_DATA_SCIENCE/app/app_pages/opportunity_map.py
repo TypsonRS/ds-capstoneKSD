@@ -4,7 +4,8 @@ import pydeck as pdk
 import streamlit as st
 
 from common import (AOI_KM2, BEST_MODEL, FEATURE_INFO, MODEL_COLS, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, dot, hex_to_rgb,
-                    hexbin_mean, load_countries, load_points, rdylgn, surface_png)
+                    compact_deck, hexbin_mean, load_countries, load_points, rdylgn,
+                    surface_png)
 
 st.title(':color[Opportunity map]{foreground="#00a443"}', anchor=False)
 st.caption("Each sampled 250 m site colours the area around it. Click the map to see the conditions of the nearest site.")
@@ -56,12 +57,10 @@ else:
     legend = f"Probability of high potential: {dot(RDYLGN_HEX[0])} 0 → {dot(RDYLGN_HEX[0.5])} 0.5 → {dot(RDYLGN_HEX[1])} 1"
 
 m["tier_name"] = np.array(TIER_NAMES)[m["tier"]]
-# keep the payload sent to the browser small: only what the layers and the tooltip use
-plot = m[["lon", "lat", "r", "g", "b", "tier_name", "votes", "score", "precipitation_mean", "soil_moisture",
-          "elevation", "slope", "ndvi_trend"]].reset_index(names="site_id")
-plot[["lon", "lat"]] = plot[["lon", "lat"]].round(5)
-plot = plot.round({"score": 2, "precipitation_mean": 2, "soil_moisture": 0, "elevation": 0, "slope": 1,
-                   "ndvi_trend": 5})
+# Keep the payload sent to the browser small (about 5 MB instead of 25 MB for 100,000 sites): short column names
+# and only what the tooltip needs. The full conditions of a site appear below the map when it is clicked.
+plot = pd.DataFrame({"i": m.index, "x": m["lon"].round(4), "y": m["lat"].round(4), "p": m["score"].round(2),
+                     "v": m["votes"]})
 
 layers = []
 if view == "Hexagons":
@@ -78,24 +77,25 @@ if view == "Hexagons":
 else:
     # wall-to-wall surface (nearest sample point, like the notebook's folium map) + the points on top for clicks
     spacing = float(np.sqrt(AOI_KM2 / len(df)))                       # km between neighbouring sites
-    image, bounds = surface_png(plot["lon"].to_numpy(), plot["lat"].to_numpy(), plot[["r", "g", "b"]].to_numpy(),
-                                spacing, reach=1.5)
+    image, bounds = surface_png(m["lon"].round(5).to_numpy(), m["lat"].round(5).to_numpy(),
+                                m[["r", "g", "b"]].to_numpy(), spacing, reach=1.5)
     layers.append(pdk.Layer("BitmapLayer", None, id="surface", image=pdk.types.String(image), bounds=bounds))
+    if show_points:                                   # colours are only sent when the points are visible
+        plot[["r", "g", "b"]] = m[["r", "g", "b"]].to_numpy()
     layers.append(pdk.Layer(
-        "ScatterplotLayer", plot, id="sites", get_position=["lon", "lat"],
-        get_fill_color=["r", "g", "b", 255 if show_points else 1],      # alpha 1: invisible but still clickable
+        "ScatterplotLayer", plot, id="sites", get_position=["x", "y"],
+        get_fill_color=["r", "g", "b", 255] if show_points else [0, 0, 0, 1],   # alpha 1: invisible but clickable
         get_line_color=[30, 30, 30, 160 if show_points else 0], stroked=True, line_width_min_pixels=0.3,
         get_radius=spacing * 450, radius_min_pixels=1, pickable=True, auto_highlight=True))
-    tooltip = {"html": "<b>P(high potential): {score}</b><br/>{tier_name} · {votes} of 4 models say high"
-                       "<br/>Rain {precipitation_mean} mm/day · Soil moisture {soil_moisture} mm"
-                       "<br/>Elevation {elevation} m · Slope {slope}°<br/>NDVI trend {ndvi_trend}/yr"}
+    tooltip = {"html": "<b>P(high potential): {p}</b><br/>{v} of 4 models say high"
+                       "<br/><i>Click for the conditions of this site</i>"}
 
 countries = load_countries()
 if countries:
     layers.append(pdk.Layer("GeoJsonLayer", countries, id="borders", stroked=True, filled=False,
                             get_line_color=[60, 60, 60], line_width_min_pixels=1.5))
 
-deck = pdk.Deck(
+deck = compact_deck(
     layers=layers,
     initial_view_state=pdk.ViewState(latitude=float(m["lat"].mean()), longitude=float(m["lon"].mean()), zoom=8),
     tooltip=tooltip,
@@ -107,10 +107,10 @@ st.markdown(legend, unsafe_allow_html=True)
 # ---- details of the clicked site ----
 picked = (event.selection.objects.get("sites") or []) if event and event.selection else []
 if picked:
-    site = picked[0]
+    site_id = int(picked[0]["i"])
+    row = df.loc[site_id]
     with st.container(border=True):
-        st.subheader(f"Site {site['site_id']}  ·  {site['lat']:.4f}° N, {site['lon']:.4f}° E", anchor=False)
-        row = df.loc[site["site_id"]]
+        st.subheader(f"Site {site_id}  ·  {row['lat']:.4f}° N, {row['lon']:.4f}° E", anchor=False)
         with st.container(horizontal=True):
             for name, col in MODEL_COLS.items():
                 st.metric(name, f"{row[col]:.2f}")
@@ -120,7 +120,7 @@ if picked:
         st.dataframe(details, hide_index=True, alt="Conditions at the selected site",
                      column_config={"Value": st.column_config.NumberColumn(format="%.4g")})
         if st.button("Score this site with custom changes", icon=":material/tune:"):
-            st.session_state.predict_site = int(site["site_id"])
+            st.session_state.predict_site = site_id
             st.switch_page("app_pages/predict.py")
 
 # ---- top sites + download ----
@@ -130,5 +130,7 @@ with st.expander("Top 100 sites and download", icon=":material/download:"):
     st.dataframe(top, alt="Top 100 sites by opportunity score",
                  column_config={"score": st.column_config.ProgressColumn("P(high)", min_value=0, max_value=1,
                                                                         format="%.2f")})
-    st.download_button("Download all shown sites (CSV)", m.drop(columns=["r", "g", "b"]).to_csv(index=False),
+    # a callable: the 100,000-row CSV is only built when the button is clicked, not on every rerun
+    st.download_button("Download all shown sites (CSV)",
+                       lambda: m.drop(columns=["r", "g", "b", "tier_name"]).to_csv(index=False),
                        file_name=f"agrorestore_{score_col}.csv", mime="text/csv", icon=":material/download:")

@@ -99,6 +99,21 @@ def dot(color):
     return f'<span style="color:{color};font-size:1.3em;line-height:1">&#9679;</span>'
 
 
+def compact_deck(**kwargs):
+    """A pydeck Deck whose JSON has no indentation. pydeck writes indent=2, which roughly triples the size of
+    100,000 map points sent to the browser on every rerun. The map itself is unchanged."""
+    import json
+
+    import pydeck as pdk
+    from pydeck.bindings.json_tools import default_serialize
+
+    class _CompactDeck(pdk.Deck):
+        def to_json(self):
+            return json.dumps(self, sort_keys=True, default=default_serialize, separators=(",", ":"))
+
+    return _CompactDeck(**kwargs)
+
+
 # RdYlGn end/mid points as hex, for continuous-scale legends
 RDYLGN_HEX = {0: "#a50026", 0.5: "#ffffbf", 1: "#006837"}
 
@@ -211,7 +226,10 @@ def load_countries():
 
     if not COUNTRIES_SHP.exists():
         return None
-    return gpd.read_file(COUNTRIES_SHP).to_crs("EPSG:4326").__geo_interface__
+    # simplified to about 100 m: the borders look the same at the map's zoom, with far less data to send
+    g = gpd.read_file(COUNTRIES_SHP).to_crs("EPSG:4326")
+    g["geometry"] = g.geometry.simplify(0.001).set_precision(1e-4)
+    return g.__geo_interface__
 
 
 @st.cache_data

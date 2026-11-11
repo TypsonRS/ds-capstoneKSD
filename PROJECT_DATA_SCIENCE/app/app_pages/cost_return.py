@@ -4,7 +4,7 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
-from common import AOI_KM2, BEST_MODEL, HIGH_T, LOW_T, hex_to_rgb, load_countries, load_points
+from common import AOI_KM2, BEST_MODEL, HIGH_T, LOW_T, compact_deck, hex_to_rgb, load_countries, load_points
 from costs import (forest_income, CARBON_PRICE, CROP_COST_XOF_HA, DISCOUNT_RATE, DISCOUNT_RATE_RANGE, FOREST_EST_COST,
                    FOREST_EST_COST_RANGE, FOREST_MAINT_COST, FOREST_MAINT_COST_RANGE, FOREST_MAINT_YRS, WAGE_XOF_H,
                    XOF_PER_USD, FOREST_INCOME_HA_YR, FOREST_INCOME_HA_YR_MAX, FUELWOOD_START_YR, HORIZON_YRS, REFERENCES,
@@ -240,23 +240,26 @@ with st.container(border=True):
     share = m["status"].value_counts(normalize=True)
     shown = st.pills("Show", list(MAP_COLORS), default=list(MAP_COLORS), selection_mode="multi",
                      format_func=lambda s: f"{s} ({share.get(s, 0):.0%})")
-    m = m.loc[m["status"].isin(shown)]
-    m[["r", "g", "b"]] = np.array([hex_to_rgb(MAP_COLORS[s]) for s in m["status"]]).reshape(-1, 3)
-    m["a"] = 220
-    m = m.round({"lon": 5, "lat": 5, "opportunity": 2, "cost_forest": 0, "npv_forest": 0, "cost_agri": 0,
-                 "npv_agri": 0})
+    # One layer per status with a fixed colour, and short column names: about 5 times less data is sent to the
+    # browser than one layer with a colour and the full tooltip on every one of the 100,000 sites.
     spacing = float(np.sqrt(AOI_KM2 / len(df)))
-    layers = [pdk.Layer("ScatterplotLayer", m, id="sites", get_position=["lon", "lat"],
-                        get_fill_color=["r", "g", "b", "a"], get_radius=spacing * 450, radius_min_pixels=1,
-                        pickable=True, auto_highlight=True)]
+    layers = []
+    for s in shown:
+        part = m.loc[m["status"] == s]
+        if part.empty:
+            continue
+        pts = pd.DataFrame({"x": part["lon"].round(4), "y": part["lat"].round(4), "p": part["opportunity"].round(2),
+                            "s": s, "nf": part["npv_forest"].round(0), "na": part["npv_agri"].round(0)})
+        layers.append(pdk.Layer("ScatterplotLayer", pts, id=f"sites-{s}", get_position=["x", "y"],
+                                get_fill_color=[*hex_to_rgb(MAP_COLORS[s]), 220], get_radius=spacing * 450,
+                                radius_min_pixels=1, pickable=True, auto_highlight=True))
     countries = load_countries()
     if countries:
         layers.append(pdk.Layer("GeoJsonLayer", countries, id="borders", stroked=True, filled=False,
                                 get_line_color=[60, 60, 60], line_width_min_pixels=1.5))
-    tooltip = {"html": "<b>{status}</b><br/>Tier: {level}<br/>Better use: {best_use}<br/>P(high potential): {opportunity}"
-                       "<br/>Forest restoration: cost {cost_forest} · NPV {npv_forest} USD/ha"
-                       "<br/>Agriculture: cost {cost_agri} · NPV {npv_agri} USD/ha"}
-    st.pydeck_chart(pdk.Deck(layers=layers, tooltip=tooltip, initial_view_state=pdk.ViewState(
+    tooltip = {"html": "<b>{s}</b><br/>P(high potential): {p}"
+                       "<br/>NPV forest restoration: {nf} USD/ha<br/>NPV agriculture: {na} USD/ha"}
+    st.pydeck_chart(compact_deck(layers=layers, tooltip=tooltip, initial_view_state=pdk.ViewState(
         latitude=float(inv["lat"].mean()), longitude=float(inv["lon"].mean()), zoom=8)), height=560,
         alt=f"Map of the better land use for {level.lower()} sites")
     st.markdown(":green[●] Forest restoration pays back · :orange[●] Agriculture pays back · "
@@ -278,8 +281,8 @@ with st.container(border=True):
                                                                          help=HELP["Profitable sites"]),
                      "Total NPV (M USD)": st.column_config.NumberColumn(format="%,.1f"),
                      "Best use at": st.column_config.ProgressColumn(min_value=0, max_value=1, format="percent")})
-    st.download_button("Download site-level costs (CSV)",
-                       inv.loc[inv["level"].isin(list(LEVELS)), ["lon", "lat", "opportunity", "level", *[
+    st.download_button("Download site-level costs (CSV)",            # built only when clicked
+                       lambda: inv.loc[inv["level"].isin(list(LEVELS)), ["lon", "lat", "opportunity", "level", *[
                            c for c in inv.columns if c.startswith(("cost_", "return_", "npv_"))], "best_use"]]
                        .to_csv(index=False), file_name="agrorestore_cost_return.csv", mime="text/csv",
                        icon=":material/download:")

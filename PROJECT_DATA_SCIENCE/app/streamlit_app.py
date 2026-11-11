@@ -4,9 +4,33 @@ Run from PROJECT_DATA_SCIENCE (or double-click run_app.bat):
     venv\\Scripts\\python.exe -m streamlit run app\\streamlit_app.py
 """
 
+import threading
+
 import streamlit as st
 
+from common import load_cnn, load_models, load_points, load_site_patches
+
 st.set_page_config(page_title="AgroRestore AI", page_icon=":material/eco:", layout="wide")
+
+
+@st.cache_resource(show_spinner=False)
+def _warm_up():
+    """Load the trained models and the CNN image patches in the background, once per server start, while the
+    first page is shown. The "Score a site" and "Score a new region" pages then open without waiting."""
+    def work():
+        try:
+            load_models()
+            cnn = load_cnn()
+            load_site_patches(len(load_points()), len(cnn["channels"]), cnn["radius"])
+        except Exception:                # the pages load (and report) the files themselves if this fails
+            pass
+
+    t = threading.Thread(target=work, name="warm-up", daemon=True)
+    t.start()
+    return t
+
+
+_warm_up()
 
 page = st.navigation(
     [

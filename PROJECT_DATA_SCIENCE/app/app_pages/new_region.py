@@ -4,7 +4,7 @@ import pydeck as pdk
 import streamlit as st
 
 import adapt
-from common import (FEATURE_INFO, REGION, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, dot, cnn_predict, hex_to_rgb, hexbin_mean, load_cnn,
+from common import (FEATURE_INFO, REGION, RDYLGN_HEX, TIER_COLORS, TIER_NAMES, compact_deck, dot, cnn_predict, hex_to_rgb, hexbin_mean, load_cnn,
                     load_models, load_points, rdylgn, surface_png)
 
 CNN_NAME = "CNN (2D patches)"
@@ -213,7 +213,7 @@ outline = pdk.Layer("GeoJsonLayer", boundary, id="boundary", stroked=True, fille
                     get_line_color=[40, 40, 40], line_width_min_pixels=2)
 span = max(scored["lon"].max() - scored["lon"].min(), scored["lat"].max() - scored["lat"].min(), 0.01)
 zoom = float(np.clip(np.log2(360 / span) - 0.6, 3, 11))
-st.pydeck_chart(pdk.Deck(layers=[*layers, outline], tooltip=tooltip,
+st.pydeck_chart(compact_deck(layers=[*layers, outline], tooltip=tooltip,
                          initial_view_state=pdk.ViewState(latitude=float(scored["lat"].mean()),
                                                           longitude=float(scored["lon"].mean()), zoom=zoom)),
                 height=600, alt=f"Map of {model} restoration-potential scores in {full_name}, {view.lower()} view")
