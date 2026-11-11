@@ -22,7 +22,7 @@ with st.sidebar:
     # their average per year over the horizon in today's money, so it follows the horizon and the discount rate.
     forest_income_ha_yr = FOREST_INCOME_HA_YR
     income_box = st.container()
-    horizon = st.slider("Investment horizon (years)", 10, 40, HORIZON_YRS, 5)
+    horizon = st.slider("Investment horizon (years)", 1, 40, HORIZON_YRS, 1)
     low_t, high_t = st.slider("P tier thresholds (low ≤ / high ≥)", 0.0, 1.0, (LOW_T, HIGH_T), 0.05,
                               key="cr_tiers", help="P = best model's probability of high potential. Sites with "
                                                    "P ≤ low are low potential, P ≥ high are high potential, "

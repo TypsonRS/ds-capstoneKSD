@@ -227,7 +227,7 @@ sites).
 
 The site table in the Results section above is read from `site_ranking_cost_return.csv`. The
 **Cost and return** page of the app ([app/costs.py](PROJECT_DATA_SCIENCE/app/costs.py)) uses the
-same inputs and income lines as the notebook. It adds sliders for the horizon, the tier
+same inputs and income lines as the notebook. It adds sliders for the horizon (1-40 years), the tier
 thresholds and the main cost inputs: forest establishment and maintenance, crop production cost,
 farm wage and discount rate (0-20%). Each slider starts at the notebook's value. The page shows
 the forest income as its average per year over the horizon in today's money, 89 USD/ha by
