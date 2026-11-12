@@ -196,7 +196,7 @@ for col, (level, rule) in zip(st.columns(2), LEVELS.items()):
                          "Total NPV (M USD)": sub[f"npv_{k}"].sum() * ha_per_site / 1e6, "Best use at": best})
         labels = ["Cost invested (USD/ha)", "Expected return (USD/ha)", "NPV (USD/ha)", "ROI",
                   "Profitable sites", "Better use on"]
-        table = ["| | " + " | ".join(f"{USE_DOT[u]} **{u}**" for u in USES) + " |", "|:--|--:|--:|"]
+        table = [f"| **Total money (USD/ha/{horizon} yr)** | " + " | ".join(f"{USE_DOT[u]} **{u}**" for u in USES) + " |", "|:--|--:|--:|"]
         table += [f"| {lab} | " + " | ".join(cells[u][i] for u in USES) + " |" for i, lab in enumerate(labels)]
         st.markdown("\n".join(table))
 
