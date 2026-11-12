@@ -40,6 +40,7 @@ CROP_YIELD_KG_HA = 1198  # World Bank WDI AG.YLD.CREL.KG (FAO), Togo 2024
 CROP_PRICE_XOF_KG = 231  # WFP market prices (HDX): median retail maize, Centrale, 2021-2026
 FARMGATE_SHARE = 0.75    # ASSUMPTION: producer price vs retail
 CROP_COST_XOF_HA = 96_700  # production cost per ha, Togo 2022 (La Cinquieme)
+AGRI_INCOME_HA_YR = CROP_YIELD_KG_HA * CROP_PRICE_XOF_KG * FARMGATE_SHARE / XOF_PER_USD   # ~346 USD/ha/yr from year 1
 
 # ---- Site extras ----
 WAGE_XOF_H = 302.89      # Togo SMIG = SMAG, 2023
@@ -166,8 +167,7 @@ def cost_return(df: pd.DataFrame, forest_income_ha_yr: float = FOREST_INCOME_HA_
         if s["carbon"]:
             yearly_rev = sum(forest_income(forest_income_ha_yr, horizon).values(), np.zeros(horizon))
         else:
-            yearly_rev = np.where(years >= s["revenue_start_yr"],
-                                  CROP_YIELD_KG_HA * CROP_PRICE_XOF_KG * FARMGATE_SHARE / XOF_PER_USD, 0.0)
+            yearly_rev = np.where(years >= s["revenue_start_yr"], AGRI_INCOME_HA_YR, 0.0)
         access = (s["labour_days"] * 2 * d_settle_km / WALK_KMH * wage_xof_h / XOF_PER_USD
                   + s["haul_t"] * d_road_km * HEADLOAD_USD_TKM)
         once = (s["base_cost_ha"] + np.where(df["slope"] > SLOPE_FREE_DEG, s["bund_cost_ha"], 0)

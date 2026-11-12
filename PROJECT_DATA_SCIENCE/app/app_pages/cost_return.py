@@ -5,10 +5,10 @@ import pydeck as pdk
 import streamlit as st
 
 from common import AOI_KM2, BEST_MODEL, HIGH_T, LOW_T, compact_deck, hex_to_rgb, load_countries, load_points
-from costs import (forest_income, CARBON_PRICE, CROP_COST_XOF_HA, DISCOUNT_RATE, DISCOUNT_RATE_RANGE, FOREST_EST_COST,
+from costs import (forest_income, AGRI_INCOME_HA_YR, CARBON_PRICE, CROP_PRICE_XOF_KG, CROP_YIELD_KG_HA, FARMGATE_SHARE, CROP_COST_XOF_HA, DISCOUNT_RATE, DISCOUNT_RATE_RANGE, FOREST_EST_COST,
                    FOREST_EST_COST_RANGE, FOREST_MAINT_COST, FOREST_MAINT_COST_RANGE, FOREST_MAINT_YRS, WAGE_XOF_H,
                    XOF_PER_USD, FOREST_INCOME_HA_YR, FOREST_INCOME_HA_YR_MAX, FUELWOOD_START_YR, HORIZON_YRS, REFERENCES,
-                   SCEN_COLORS, SHEA_START_YR, cost_return)
+                   SCEN_COLORS, SHEA_START_YR, WORKDAY_H, cost_return)
 
 st.title(':color[Cost and return]{foreground="#00a443"}', anchor=False)
 st.caption(f"Cost and expected return per hectare of two general land uses, for the **high** and **low** potential "
@@ -53,6 +53,9 @@ with st.sidebar:
         help=f"Prices the labour for land clearing, stone bunds and walking to the site. Default "
              f"{WAGE_XOF_H / XOF_PER_USD:.2f} USD/h ({WAGE_XOF_H:.0f} FCFA/h at {XOF_PER_USD} FCFA/USD), the Togo "
              "minimum wage (SMIG = SMAG, 2023).")
+    # same wage per year for one full-time worker: the 40-h week implied by the SMIG, 52 weeks
+    st.caption(f"= **{wage_usd_h * WORKDAY_H * 5 * 52:,.0f} USD/yr** for one full-time worker "
+               f"({WORKDAY_H} h/day, 5 days/week, 52 weeks)")
     crop_cost_xof_ha, wage_xof_h = crop_cost_usd_ha * XOF_PER_USD, wage_usd_h * XOF_PER_USD
     discount_rate = st.slider(
         "Discount rate", DISCOUNT_RATE_RANGE[0], DISCOUNT_RATE_RANGE[1], DISCOUNT_RATE, 0.01, key="cr_discount",
@@ -84,8 +87,12 @@ years = np.arange(1, horizon + 1)
 disc = 1 / (1 + discount_rate) ** years
 income_pv = (sum(forest_income(forest_income_ha_yr, horizon).values()) * disc).sum()
 income_per_year = income_pv / disc.sum()
-with income_box:
-    st.metric("Forest income (USD/ha/yr)", f"{income_per_year:,.0f}", border=True,
+# agriculture earns the same from year 1, so its average is computed the same way for a like-for-like comparison
+agri_per_year = (np.full(horizon, AGRI_INCOME_HA_YR) * disc).sum() / disc.sum()
+gap = income_per_year - agri_per_year                      # changes with the horizon and the discount rate
+with income_box, st.container(horizontal=True):
+    st.metric("Forest income (USD/ha/yr)", f"{income_per_year:,.0f}", f"{gap:+,.0f} vs agriculture".replace("-", "−"),
+              border=True,
               help=f"Average money one hectare of restored forest earns per year over the {horizon}-year horizon, "
                    f"in today's money at the {discount_rate:.0%} discount rate. It updates automatically with the "
                    f"horizon and the discount rate. In full production the forest earns {forest_income_ha_yr:.0f} "
@@ -93,6 +100,14 @@ with income_box:
                    f"1983, Central Togo prices) from year {FUELWOOD_START_YR} and shea kernels (FAO & Global Shea "
                    f"Alliance 2020) from year {SHEA_START_YR}, minus the carbon the burnt wood no longer earns. "
                    "Before the model probability and fire risk. Details: **Inputs and sources** below.")
+    st.metric("Agriculture income (USD/ha/yr)", f"{agri_per_year:,.0f}",
+              f"{-gap:+,.0f} vs forest".replace("-", "−"), border=True,
+              help=f"Average money one hectare of cereal earns per year over the {horizon}-year horizon, in today's "
+                   f"money at the {discount_rate:.0%} discount rate: {CROP_YIELD_KG_HA:,} kg/ha × "
+                   f"{CROP_PRICE_XOF_KG} FCFA/kg retail × {FARMGATE_SHARE:.0%} farm-gate share ÷ {XOF_PER_USD} "
+                   "FCFA/USD. Harvests start in year 1, so the average stays the same whatever the horizon or "
+                   "discount rate; the difference with the forest (green or red below the value) moves with them. "
+                   "Before the crop production cost, the model probability and fire risk.")
 
 USES = {"Forest restoration": "forest", "Agriculture": "agri"}
 LOSS = "Not profitable"
