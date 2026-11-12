@@ -1,0 +1,5 @@
+# GitHub language statistics: leave out generated maps/figures and saved reference web pages,
+# so the bar shows the code that was written (notebook and Python app), not exported HTML.
+PROJECT_DATA_SCIENCE/reports/** linguist-generated
+PROJECT_DATA_SCIENCE/references/** linguist-documentation
+*.html linguist-generated
