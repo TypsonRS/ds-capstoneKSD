@@ -155,3 +155,6 @@ PROJECT_DATA_SCIENCE/certs/
 
 # OpenStreetMap country extracts downloaded by the app (Score a new region), hundreds of MB
 PROJECT_DATA_SCIENCE/cache/osm/
+
+# Earth Engine service-account key (never commit)
+PROJECT_DATA_SCIENCE/secrets/

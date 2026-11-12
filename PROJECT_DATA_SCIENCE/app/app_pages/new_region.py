@@ -112,9 +112,11 @@ with st.status(f"Scoring **{place}**...", expanded=False) as status:
     except Exception as e:  # geocoding, Earth Engine or model errors are shown to the user, not raised
         status.update(label=f"Could not score {place}", state="error", expanded=True)
         msg = str(e).lower()
-        if "credentials" in msg or "authenticate" in msg:
-            st.error("Earth Engine login has expired. Run `ee.Authenticate()` once in the notebook, then retry.",
-                     icon=":material/key:")
+        if any(s in msg for s in ("credentials", "authenticate", "invalid_grant", "expired or revoked")):
+            st.cache_resource.clear()     # so the next try reconnects with fresh credentials
+            st.error("Earth Engine login has expired. **Permanent fix:** save a service-account key as "
+                     "`PROJECT_DATA_SCIENCE/secrets/ee-service-account.json`. **Quick fix:** run "
+                     "`ee.Authenticate(force=True)` once. Then retry.", icon=":material/key:")
         st.exception(e)
         st.stop()
     status.update(label=f"**{full_name}**: {len(scored):,} points scored", state="complete")

@@ -5,10 +5,14 @@ A copy of the notebook's settings and get_features_image() (AgroRestoreAI.ipynb,
 If you change the features in the notebook, make the same change here.
 """
 
+import json
+import os
 import warnings
 from datetime import datetime, timezone
+from pathlib import Path
 
 import ee
+from google.auth.exceptions import RefreshError
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -23,9 +27,31 @@ RANDOM_STATE = 42
 CRITICAL_COLS = ["soc", "ph", "fire_freq", "ndvi_mean", "slope"]   # rows missing these are dropped, as in the notebook
 
 
+SERVICE_ACCOUNT_KEY = Path(__file__).resolve().parents[1] / "secrets" / "ee-service-account.json"
+
+
 def init_ee():
-    """Connect to Earth Engine with the credentials saved by ee.Authenticate() in the notebook."""
+    """Connect to Earth Engine.
+
+    Prefers a service-account key (never expires): the file named by the EE_SERVICE_ACCOUNT_KEY environment
+    variable, else PROJECT_DATA_SCIENCE/secrets/ee-service-account.json. Falls back to the personal login saved
+    by ee.Authenticate(), which can expire (after 7 days when the OAuth app is in "Testing" mode).
+    """
+    key = Path(os.environ.get("EE_SERVICE_ACCOUNT_KEY", SERVICE_ACCOUNT_KEY))
+    if key.is_file():
+        email = json.loads(key.read_text())["client_email"]
+        ee.Initialize(ee.ServiceAccountCredentials(email, str(key)), project=GEE_PROJECT)
+        return "service account"
+
     ee.Initialize(project=GEE_PROJECT)
+    try:
+        ee.Number(1).getInfo()        # Initialize() does not refresh the token, so test it now
+    except RefreshError as e:
+        raise RuntimeError(
+            "Earth Engine login has expired or been revoked. Permanent fix: put a service-account key at "
+            f"{SERVICE_ACCOUNT_KEY} (see the app README). Quick fix: run ee.Authenticate(force=True) once."
+        ) from e
+    return "user login"
 
 
 def geocode_region(place):
