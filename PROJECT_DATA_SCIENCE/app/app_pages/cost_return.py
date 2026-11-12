@@ -42,14 +42,18 @@ with st.sidebar:
         "Forest maintenance (USD/ha/yr)", 0, 220, FOREST_MAINT_COST, 1, key="cr_forest_maint",
         help=f"Weeding, fire breaks and replanting in years 1-{FOREST_MAINT_YRS}. Default {FOREST_MAINT_COST}; "
              f"cited range {FOREST_MAINT_COST_RANGE[0]}-{FOREST_MAINT_COST_RANGE[1]} USD/ha/yr (Bodin et al. 2021).")
-    crop_cost_xof_ha = st.slider(
-        "Crop production cost (FCFA/ha/yr)", 0, 200_000, CROP_COST_XOF_HA, 1_000, key="cr_crop_cost",
-        help=f"Seed, fertiliser, tools and hired labour every year. Default {CROP_COST_XOF_HA:,} FCFA/ha "
-             f"(≈ {CROP_COST_XOF_HA / XOF_PER_USD:.0f} USD; Togo 2022, La Cinquième 2024).")
-    wage_xof_h = st.slider(
-        "Farm wage (FCFA/hour)", 150.0, 600.0, float(WAGE_XOF_H), 1.0, key="cr_wage", format="%.0f",
+    # shown in USD like every other cost; the sources (and costs.py) are in FCFA, converted at XOF_PER_USD
+    crop_cost_usd_ha = st.slider(
+        "Crop production cost (USD/ha/yr)", 0.0, 335.0, CROP_COST_XOF_HA / XOF_PER_USD, 1.0, key="cr_crop_cost_usd",
+        format="%.0f",
+        help=f"Seed, fertiliser, tools and hired labour every year. Default {CROP_COST_XOF_HA / XOF_PER_USD:.0f} "
+             f"USD/ha ({CROP_COST_XOF_HA:,} FCFA at {XOF_PER_USD} FCFA/USD; Togo 2022, La Cinquième 2024).")
+    wage_usd_h = st.slider(
+        "Farm wage (USD/hour)", 0.25, 1.00, WAGE_XOF_H / XOF_PER_USD, 0.01, key="cr_wage_usd", format="%.2f",
         help=f"Prices the labour for land clearing, stone bunds and walking to the site. Default "
-             f"{WAGE_XOF_H:.0f} FCFA/h, the Togo minimum wage (SMIG = SMAG, 2023).")
+             f"{WAGE_XOF_H / XOF_PER_USD:.2f} USD/h ({WAGE_XOF_H:.0f} FCFA/h at {XOF_PER_USD} FCFA/USD), the Togo "
+             "minimum wage (SMIG = SMAG, 2023).")
+    crop_cost_xof_ha, wage_xof_h = crop_cost_usd_ha * XOF_PER_USD, wage_usd_h * XOF_PER_USD
     discount_rate = st.slider(
         "Discount rate", DISCOUNT_RATE_RANGE[0], DISCOUNT_RATE_RANGE[1], DISCOUNT_RATE, 0.01, key="cr_discount",
         format="percent", help=f"How much less money is worth each year later. Default {DISCOUNT_RATE:.0%} "
