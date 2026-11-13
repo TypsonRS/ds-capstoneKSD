@@ -19,6 +19,12 @@ MODELS_PKL = DATA_PROCESSED / "models.pkl"
 BASELINE_CSV = ROOT / "results_baseline_no_tune.csv"
 COUNTRIES_SHP = ROOT / "data" / "countries_near_aoi.shp"
 
+# Compressed copies for the online app (written by app/prepare_deploy.py, committed to git). Used only when the
+# full-size files above are missing, as on Streamlit Community Cloud (models.pkl and the patches are > 100 MB).
+DEPLOY_DIR = ROOT / "deploy"
+DEPLOY_MODELS = DEPLOY_DIR / "models.joblib.xz"
+DEPLOY_PATCHES = DEPLOY_DIR / "P_all.npz"
+
 # ============================ SETTINGS (mirrors the notebook) ============================
 REGION = "Centrale Region, Togo"
 AOI_KM2 = 13_242                       # study frame area printed by the notebook (sum of the tier areas)
@@ -286,6 +292,10 @@ def load_site_patches(n_points, n_channels, radius):
         del m                                            # closes the mapping, so the file is free again
         if ok:
             return P
+    if DEPLOY_PATCHES.exists():                          # online app: compressed copy from prepare_deploy.py
+        P = np.load(DEPLOY_PATCHES)["P"]
+        if P.shape == (n_points, n_channels, side, side):
+            return P
     return None
 
 
@@ -309,4 +319,4 @@ def load_models() -> dict:
     """models.pkl from the notebook: RF, LR and XGBoost pipelines (the CNN needs image patches, so it is not here)."""
     import joblib
 
-    return joblib.load(MODELS_PKL)
+    return joblib.load(MODELS_PKL if MODELS_PKL.exists() else DEPLOY_MODELS)

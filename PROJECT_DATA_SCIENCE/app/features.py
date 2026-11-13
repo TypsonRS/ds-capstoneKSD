@@ -43,6 +43,18 @@ def init_ee():
         ee.Initialize(ee.ServiceAccountCredentials(email, str(key)), project=GEE_PROJECT)
         return "service account"
 
+    # Online app (Streamlit Community Cloud): the same JSON key pasted into the app's Secrets as
+    # [ee_service_account] (see DEPLOY.md). The key file itself is never committed.
+    try:
+        import streamlit as st
+        info = dict(st.secrets["ee_service_account"])
+    except Exception:
+        info = None
+    if info:
+        creds = ee.ServiceAccountCredentials(info["client_email"], key_data=json.dumps(info))
+        ee.Initialize(creds, project=GEE_PROJECT)
+        return "service account (Streamlit secrets)"
+
     ee.Initialize(project=GEE_PROJECT)
     try:
         ee.Number(1).getInfo()        # Initialize() does not refresh the token, so test it now
